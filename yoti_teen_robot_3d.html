@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Yoti Adolescente — Robot Pseudo-3D</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:linear-gradient(160deg,#060B18,#0A1628,#0D1F3C);min-height:100vh;display:flex;align-items:center;justify-content:center;font-family:'Nunito',sans-serif;}
+.wrap{display:flex;flex-direction:column;align-items:center;gap:16px;padding:48px 32px;}
+@keyframes robotFloat{0%,100%{transform:translateY(0) rotate(0deg)}40%{transform:translateY(-10px) rotate(.6deg)}70%{transform:translateY(-5px) rotate(-.4deg)}}
+@keyframes ledBlink{0%,88%,100%{opacity:1}93%{opacity:.05}}
+@keyframes handWave{0%,100%{transform:rotate(0deg) translate(0,0)}25%{transform:rotate(12deg) translate(2px,-4px)}75%{transform:rotate(-6deg) translate(-1px,2px)}}
+.yoti-svg{animation:robotFloat 3.8s ease-in-out infinite;}
+.title{font-size:13px;font-weight:800;color:rgba(103,232,249,.4);letter-spacing:2px;text-transform:uppercase;text-align:center;}
+.subtitle{font-size:11px;color:rgba(103,232,249,.25);letter-spacing:1px;text-align:center;margin-top:4px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+<svg class="yoti-svg" width="320" height="340" viewBox="80 60 520 520" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <radialGradient id="headMetal" cx="38%" cy="28%" r="65%">
+    <stop offset="0%" stop-color="#e2e8f0"/>
+    <stop offset="30%" stop-color="#94a3b8"/>
+    <stop offset="65%" stop-color="#475569"/>
+    <stop offset="100%" stop-color="#1e293b"/>
+  </radialGradient>
+  <radialGradient id="headTop" cx="45%" cy="20%" r="55%">
+    <stop offset="0%" stop-color="#cbd5e1"/>
+    <stop offset="100%" stop-color="#334155"/>
+  </radialGradient>
+  <radialGradient id="faceScreen" cx="45%" cy="35%" r="60%">
+    <stop offset="0%" stop-color="#1e293b"/>
+    <stop offset="60%" stop-color="#0f172a"/>
+    <stop offset="100%" stop-color="#020617"/>
+  </radialGradient>
+  <radialGradient id="screenRefl" cx="30%" cy="20%" r="50%">
+    <stop offset="0%" stop-color="white" stop-opacity=".12"/>
+    <stop offset="100%" stop-color="white" stop-opacity="0"/>
+  </radialGradient>
+  <radialGradient id="bodyArmor" cx="40%" cy="25%" r="65%">
+    <stop offset="0%" stop-color="#cbd5e1"/>
+    <stop offset="35%" stop-color="#7f8ea3"/>
+    <stop offset="70%" stop-color="#3d4f63"/>
+    <stop offset="100%" stop-color="#1a2535"/>
+  </radialGradient>
+  <radialGradient id="shoulderL" cx="35%" cy="28%" r="62%">
+    <stop offset="0%" stop-color="#d1d9e4"/>
+    <stop offset="50%" stop-color="#5e7185"/>
+    <stop offset="100%" stop-color="#1e293b"/>
+  </radialGradient>
+  <radialGradient id="shoulderR" cx="65%" cy="28%" r="62%">
+    <stop offset="0%" stop-color="#94a3b8"/>
+    <stop offset="50%" stop-color="#3d4f63"/>
+    <stop offset="100%" stop-color="#0f172a"/>
+  </radialGradient>
+  <radialGradient id="reactorGlow" cx="50%" cy="50%" r="50%">
+    <stop offset="0%" stop-color="#67e8f9"/>
+    <stop offset="45%" stop-color="#06b6d4"/>
+    <stop offset="100%" stop-color="#0e7490"/>
+  </radialGradient>
+  <radialGradient id="earDisk" cx="40%" cy="35%" r="58%">
+    <stop offset="0%" stop-color="#94a3b8"/>
+    <stop offset="100%" stop-color="#1e293b"/>
+  </radialGradient>
+  <radialGradient id="handMetal" cx="38%" cy="30%" r="60%">
+    <stop offset="0%" stop-color="#e2e8f0"/>
+    <stop offset="45%" stop-color="#7f8ea3"/>
+    <stop offset="100%" stop-color="#1e293b"/>
+  </radialGradient>
+  <linearGradient id="neckGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+    <stop offset="0%" stop-color="#1e293b"/>
+    <stop offset="30%" stop-color="#64748b"/>
+    <stop offset="55%" stop-color="#94a3b8"/>
+    <stop offset="80%" stop-color="#475569"/>
+    <stop offset="100%" stop-color="#0f172a"/>
+  </linearGradient>
+  <radialGradient id="rimBlue" cx="8%" cy="55%" r="55%">
+    <stop offset="0%" stop-color="#0ea5e9" stop-opacity=".4"/>
+    <stop offset="100%" stop-color="#0ea5e9" stop-opacity="0"/>
+  </radialGradient>
+  <radialGradient id="shadowT" cx="50%" cy="50%" r="50%">
+    <stop offset="0%" stop-color="#0a1628" stop-opacity=".6"/>
+    <stop offset="100%" stop-color="#0a1628" stop-opacity="0"/>
+  </radialGradient>
+  <filter id="softB"><feGaussianBlur stdDeviation="7"/></filter>
+  <filter id="midB"><feGaussianBlur stdDeviation="3.5"/></filter>
+  <filter id="tinyB"><feGaussianBlur stdDeviation="1.5"/></filter>
+  <filter id="cyanGlow">
+    <feGaussianBlur stdDeviation="4" result="blur"/>
+    <feMerge><feMergeNode in="blur"/><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+  </filter>
+  <clipPath id="screenClip">
+    <ellipse cx="340" cy="270" rx="85" ry="75"/>
+  </clipPath>
+</defs>
+
+<ellipse cx="340" cy="555" rx="90" ry="14" fill="url(#shadowT)" filter="url(#softB)"/>
+<ellipse cx="340" cy="340" rx="160" ry="150" fill="#0ea5e9" opacity=".04" filter="url(#softB)"/>
+
+<g>
+  <animateTransform attributeName="transform" type="translate" values="0,0;0,-10;0,-5;0,0" dur="3.8s" repeatCount="indefinite" calcMode="spline" keySplines=".45 .05 .55 .95;.45 .05 .55 .95;.45 .05 .55 .95"/>
+
+  <!-- BODY -->
+  <ellipse cx="355" cy="430" rx="90" ry="85" fill="#0a1628" opacity=".5" filter="url(#tinyB)"/>
+  <rect x="268" y="370" width="144" height="150" rx="28" fill="url(#bodyArmor)"/>
+  <rect x="268" y="370" width="144" height="150" rx="28" fill="url(#rimBlue)"/>
+  <ellipse cx="320" cy="390" rx="40" ry="20" fill="white" opacity=".08"/>
+  <line x1="340" y1="378" x2="340" y2="512" stroke="#1e293b" stroke-width="2" opacity=".5"/>
+  <line x1="268" y1="430" x2="412" y2="430" stroke="#1e293b" stroke-width="1.5" opacity=".4"/>
+  <circle cx="282" cy="384" r="4" fill="#334155"/>
+  <circle cx="282" cy="384" r="2.5" fill="#64748b" opacity=".7"/>
+  <circle cx="398" cy="384" r="4" fill="#334155"/>
+  <circle cx="398" cy="384" r="2.5" fill="#64748b" opacity=".7"/>
+  <circle cx="282" cy="508" r="4" fill="#334155"/>
+  <circle cx="282" cy="508" r="2.5" fill="#64748b" opacity=".7"/>
+  <circle cx="398" cy="508" r="4" fill="#334155"/>
+  <circle cx="398" cy="508" r="2.5" fill="#64748b" opacity=".7"/>
+
+  <!-- REACTOR -->
+  <circle cx="340" cy="440" r="26" fill="#0e7490" opacity=".7" filter="url(#midB)"/>
+  <circle cx="340" cy="440" r="22" fill="#0f172a"/>
+  <circle cx="340" cy="440" r="18" fill="#0c4a6e" opacity=".8"/>
+  <circle cx="340" cy="440" r="14" fill="url(#reactorGlow)" filter="url(#cyanGlow)">
+    <animate attributeName="r" values="14;17;14" dur="2s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="340" cy="440" r="22" fill="none" stroke="#67e8f9" stroke-width="1.5" opacity=".5"/>
+  <circle cx="340" cy="440" r="26" fill="none" stroke="#0ea5e9" stroke-width="1" opacity=".3"/>
+  <line x1="340" y1="426" x2="340" y2="454" stroke="#67e8f9" stroke-width="1" opacity=".4"/>
+  <line x1="326" y1="440" x2="354" y2="440" stroke="#67e8f9" stroke-width="1" opacity=".4"/>
+  <ellipse cx="335" cy="434" rx="6" ry="4" fill="white" opacity=".35" transform="rotate(-20,335,434)"/>
+
+  <!-- SCAN STRIP -->
+  <rect x="290" y="468" width="100" height="8" rx="4" fill="#0ea5e9" opacity=".25"/>
+  <rect x="290" y="468" width="52" height="8" rx="4" fill="#67e8f9" opacity=".5">
+    <animate attributeName="width" values="0;100;0" dur="3s" repeatCount="indefinite"/>
+  </rect>
+
+  <!-- SHOULDERS -->
+  <ellipse cx="242" cy="385" rx="44" ry="38" fill="url(#shoulderL)"/>
+  <ellipse cx="242" cy="385" rx="44" ry="38" fill="none" stroke="#475569" stroke-width="1.5" opacity=".5"/>
+  <ellipse cx="234" cy="374" rx="18" ry="12" fill="white" opacity=".1"/>
+  <ellipse cx="438" cy="385" rx="44" ry="38" fill="url(#shoulderR)"/>
+  <ellipse cx="438" cy="385" rx="44" ry="38" fill="none" stroke="#475569" stroke-width="1.5" opacity=".5"/>
+
+  <!-- NECK -->
+  <rect x="322" y="354" width="36" height="22" rx="4" fill="url(#neckGrad)"/>
+  <line x1="322" y1="359" x2="358" y2="359" stroke="#94a3b8" stroke-width="1" opacity=".4"/>
+  <line x1="322" y1="365" x2="358" y2="365" stroke="#94a3b8" stroke-width="1" opacity=".4"/>
+  <line x1="322" y1="371" x2="358" y2="371" stroke="#94a3b8" stroke-width="1" opacity=".4"/>
+
+  <!-- HEAD -->
+  <ellipse cx="352" cy="278" rx="100" ry="96" fill="#0a1628" opacity=".45" filter="url(#tinyB)"/>
+  <ellipse cx="340" cy="268" rx="108" ry="100" fill="url(#headMetal)"/>
+  <ellipse cx="340" cy="268" rx="108" ry="100" fill="url(#rimBlue)"/>
+  <ellipse cx="340" cy="188" rx="78" ry="30" fill="url(#headTop)" opacity=".8"/>
+  <path d="M268 240 Q290 200 340 192 Q390 200 412 240" stroke="#334155" stroke-width="2" fill="none" opacity=".6"/>
+  <line x1="340" y1="170" x2="340" y2="360" stroke="#334155" stroke-width="1.5" opacity=".3"/>
+  <circle cx="300" cy="198" r="5" fill="#475569"/>
+  <circle cx="300" cy="198" r="3" fill="#94a3b8" opacity=".6"/>
+  <circle cx="380" cy="198" r="5" fill="#475569"/>
+  <circle cx="380" cy="198" r="3" fill="#94a3b8" opacity=".6"/>
+  <ellipse cx="318" cy="196" rx="42" ry="18" fill="white" opacity=".12"/>
+
+  <!-- EAR DISKS -->
+  <circle cx="234" cy="268" r="28" fill="#1e293b"/>
+  <circle cx="234" cy="268" r="24" fill="url(#earDisk)"/>
+  <circle cx="234" cy="268" r="16" fill="#0f172a"/>
+  <circle cx="234" cy="268" r="11" fill="#0c4a6e"/>
+  <circle cx="234" cy="268" r="7" fill="#06b6d4" opacity=".8" filter="url(#cyanGlow)">
+    <animate attributeName="opacity" values=".8;1;.8" dur="1.8s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="234" cy="268" r="24" fill="none" stroke="#475569" stroke-width="2" opacity=".7"/>
+  <circle cx="446" cy="268" r="28" fill="#1e293b"/>
+  <circle cx="446" cy="268" r="24" fill="url(#earDisk)"/>
+  <circle cx="446" cy="268" r="16" fill="#0f172a"/>
+  <circle cx="446" cy="268" r="11" fill="#0c4a6e"/>
+  <circle cx="446" cy="268" r="7" fill="#06b6d4" opacity=".8" filter="url(#cyanGlow)">
+    <animate attributeName="opacity" values=".8;1;.8" dur="1.8s" repeatCount="indefinite" begin=".4s"/>
+  </circle>
+  <circle cx="446" cy="268" r="24" fill="none" stroke="#475569" stroke-width="2" opacity=".7"/>
+
+  <!-- ANTENNAS -->
+  <line x1="296" y1="172" x2="276" y2="128" stroke="#64748b" stroke-width="4" stroke-linecap="round"/>
+  <line x1="296" y1="172" x2="276" y2="128" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" opacity=".5"/>
+  <circle cx="276" cy="122" r="7" fill="#0f172a"/>
+  <circle cx="276" cy="122" r="5" fill="url(#reactorGlow)" filter="url(#cyanGlow)">
+    <animate attributeName="opacity" values=".7;1;.7" dur="1.5s" repeatCount="indefinite"/>
+  </circle>
+  <line x1="384" y1="172" x2="404" y2="128" stroke="#64748b" stroke-width="4" stroke-linecap="round"/>
+  <line x1="384" y1="172" x2="404" y2="128" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" opacity=".5"/>
+  <circle cx="404" cy="122" r="7" fill="#0f172a"/>
+  <circle cx="404" cy="122" r="5" fill="url(#reactorGlow)" filter="url(#cyanGlow)">
+    <animate attributeName="opacity" values=".7;1;.7" dur="1.5s" repeatCount="indefinite" begin=".5s"/>
+  </circle>
+
+  <!-- FACE SCREEN -->
+  <ellipse cx="340" cy="270" rx="88" ry="78" fill="url(#faceScreen)"/>
+  <ellipse cx="340" cy="270" rx="88" ry="78" fill="url(#screenRefl)"/>
+  <ellipse cx="340" cy="270" rx="88" ry="78" fill="none" stroke="#334155" stroke-width="3" opacity=".8"/>
+  <ellipse cx="340" cy="270" rx="84" ry="74" fill="none" stroke="#1e3a4a" stroke-width="1.5" opacity=".6"/>
+  <g clip-path="url(#screenClip)">
+    <rect x="255" y="230" width="170" height="3" fill="#67e8f9" opacity=".15">
+      <animateTransform attributeName="transform" type="translate" values="0,-50;0,90" dur="2.5s" repeatCount="indefinite"/>
+    </rect>
+  </g>
+
+  <!-- LED EYES -->
+  <g style="animation:ledBlink 4s ease-in-out infinite">
+    <path d="M287 255 Q307 238 327 255" stroke="#67e8f9" stroke-width="8" fill="none" stroke-linecap="round" filter="url(#cyanGlow)"/>
+    <path d="M287 255 Q307 238 327 255" stroke="#e0f9ff" stroke-width="3" fill="none" stroke-linecap="round" opacity=".8"/>
+    <circle cx="291" cy="253" r="3" fill="#67e8f9" opacity=".7"/>
+    <circle cx="300" cy="246" r="3" fill="#67e8f9" opacity=".7"/>
+    <circle cx="310" cy="242" r="3" fill="#67e8f9" opacity=".7"/>
+    <circle cx="320" cy="246" r="3" fill="#67e8f9" opacity=".7"/>
+    <circle cx="324" cy="253" r="3" fill="#67e8f9" opacity=".7"/>
+  </g>
+  <g style="animation:ledBlink 4s ease-in-out infinite;animation-delay:.1s">
+    <path d="M353 255 Q373 238 393 255" stroke="#67e8f9" stroke-width="8" fill="none" stroke-linecap="round" filter="url(#cyanGlow)"/>
+    <path d="M353 255 Q373 238 393 255" stroke="#e0f9ff" stroke-width="3" fill="none" stroke-linecap="round" opacity=".8"/>
+    <circle cx="357" cy="253" r="3" fill="#67e8f9" opacity=".7"/>
+    <circle cx="366" cy="246" r="3" fill="#67e8f9" opacity=".7"/>
+    <circle cx="376" cy="242" r="3" fill="#67e8f9" opacity=".7"/>
+    <circle cx="386" cy="246" r="3" fill="#67e8f9" opacity=".7"/>
+    <circle cx="390" cy="253" r="3" fill="#67e8f9" opacity=".7"/>
+  </g>
+
+  <!-- LED SMILE -->
+  <path d="M298 300 Q340 330 382 300" stroke="#67e8f9" stroke-width="7" fill="none" stroke-linecap="round" filter="url(#cyanGlow)"/>
+  <path d="M298 300 Q340 330 382 300" stroke="#e0f9ff" stroke-width="2.5" fill="none" stroke-linecap="round" opacity=".85"/>
+  <circle cx="302" cy="301" r="3" fill="#67e8f9" opacity=".7"/>
+  <circle cx="316" cy="314" r="3" fill="#67e8f9" opacity=".7"/>
+  <circle cx="331" cy="321" r="3" fill="#67e8f9" opacity=".7"/>
+  <circle cx="340" cy="323" r="3" fill="#67e8f9" opacity=".7"/>
+  <circle cx="349" cy="321" r="3" fill="#67e8f9" opacity=".7"/>
+  <circle cx="364" cy="314" r="3" fill="#67e8f9" opacity=".7"/>
+  <circle cx="378" cy="301" r="3" fill="#67e8f9" opacity=".7"/>
+
+  <!-- WAVING HAND -->
+  <g transform-origin="220 400" style="animation:handWave 2.5s ease-in-out infinite">
+    <g transform="translate(148,390)">
+      <rect x="0" y="0" width="58" height="62" rx="16" fill="url(#handMetal)"/>
+      <rect x="0" y="0" width="58" height="62" rx="16" fill="none" stroke="#475569" stroke-width="1.5" opacity=".6"/>
+      <line x1="10" y1="8" x2="10" y2="28" stroke="#334155" stroke-width="1.5" opacity=".5"/>
+      <line x1="22" y1="6" x2="22" y2="26" stroke="#334155" stroke-width="1.5" opacity=".5"/>
+      <line x1="34" y1="6" x2="34" y2="26" stroke="#334155" stroke-width="1.5" opacity=".5"/>
+      <line x1="46" y1="8" x2="46" y2="28" stroke="#334155" stroke-width="1.5" opacity=".5"/>
+      <rect x="3" y="-20" width="12" height="24" rx="6" fill="url(#handMetal)"/>
+      <rect x="3" y="-20" width="12" height="24" rx="6" fill="none" stroke="#475569" stroke-width="1" opacity=".5"/>
+      <rect x="17" y="-24" width="12" height="28" rx="6" fill="url(#handMetal)"/>
+      <rect x="17" y="-24" width="12" height="28" rx="6" fill="none" stroke="#475569" stroke-width="1" opacity=".5"/>
+      <rect x="31" y="-24" width="12" height="28" rx="6" fill="url(#handMetal)"/>
+      <rect x="31" y="-24" width="12" height="28" rx="6" fill="none" stroke="#475569" stroke-width="1" opacity=".5"/>
+      <rect x="44" y="-20" width="11" height="24" rx="5" fill="url(#handMetal)"/>
+      <rect x="44" y="-20" width="11" height="24" rx="5" fill="none" stroke="#475569" stroke-width="1" opacity=".5"/>
+      <ellipse cx="20" cy="18" rx="14" ry="10" fill="white" opacity=".1"/>
+      <circle cx="29" cy="52" r="8" fill="#0e7490" opacity=".7"/>
+      <circle cx="29" cy="52" r="6" fill="url(#reactorGlow)" filter="url(#cyanGlow)" opacity=".9">
+        <animate attributeName="opacity" values=".9;1;.9" dur="1.5s" repeatCount="indefinite"/>
+      </circle>
+    </g>
+  </g>
+
+  <!-- PULSE RING -->
+  <circle cx="340" cy="290" r="118" fill="none" stroke="#67e8f9" stroke-width="1.5" stroke-dasharray="6 10" opacity="0">
+    <animate attributeName="r" values="115;165;165" dur="3s" repeatCount="indefinite" calcMode="spline" keySplines=".4 0 .6 1;.4 0 .6 1"/>
+    <animate attributeName="opacity" values=".45;0;0" dur="3s" repeatCount="indefinite" calcMode="spline" keySplines=".4 0 .6 1;.4 0 .6 1"/>
+  </circle>
+</g>
+</svg>
+
+<div class="title">Yoti · Versión Adolescente</div>
+<div class="subtitle">Pseudo-3D · Perfiles C &amp; D · 14-17 años · YoTeCreo © 2026</div>
+<div class="subtitle" style="margin-top:8px;color:rgba(103,232,249,.15);">Concepto, Diseño y Desarrollo · Luz C. Wong Naranjo</div>
+</div>
+</body>
+</html>
