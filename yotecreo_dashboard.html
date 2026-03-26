@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>YoTeCreo — Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Nunito+Sans:wght@400;600&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#F7F5FF;--bg2:#fff;--bg3:#F0ECFE;
+  --pu:#6C4FD4;--pu2:#9B7FEE;--pu3:#EDE9FF;
+  --fu:#C026D3;--fu2:#E879F9;
+  --tx:#1A1040;--tm:#6B6490;--th:#9B8FCF;
+  --gr:#059669;--am:#D97706;--rd:#DC2626;
+  --bd:rgba(108,79,212,0.12);
+  --sh:0 2px 16px rgba(108,79,212,0.10);
+  --sh2:0 4px 32px rgba(108,79,212,0.16);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;display:flex;}
+
+/* SIDEBAR */
+.sidebar{width:220px;background:var(--tx);display:flex;flex-direction:column;padding:0;flex-shrink:0;position:relative;overflow:hidden;}
+.sidebar::before{content:'';position:absolute;bottom:-60px;left:-60px;width:200px;height:200px;border-radius:50%;background:rgba(108,79,212,.15);pointer-events:none;}
+.sb-logo{padding:24px 20px 20px;border-bottom:1px solid rgba(255,255,255,.08);}
+.sb-logo-name{font-size:20px;font-weight:900;color:#fff;letter-spacing:-.5px;}
+.sb-logo-sub{font-size:11px;color:rgba(167,139,250,.6);font-weight:600;letter-spacing:.5px;margin-top:2px;}
+.sb-badge{display:inline-block;background:linear-gradient(135deg,var(--pu),var(--fu));color:#fff;font-size:9px;font-weight:800;padding:2px 8px;border-radius:10px;letter-spacing:.5px;margin-top:6px;}
+.sb-nav{padding:16px 12px;flex:1;}
+.sb-section{font-size:10px;font-weight:800;color:rgba(167,139,250,.4);letter-spacing:1.5px;text-transform:uppercase;padding:0 8px;margin:16px 0 6px;}
+.sb-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;cursor:pointer;transition:all .2s;color:rgba(255,255,255,.5);font-size:13px;font-weight:600;margin-bottom:2px;}
+.sb-item:hover{background:rgba(255,255,255,.06);color:rgba(255,255,255,.85);}
+.sb-item.active{background:linear-gradient(135deg,rgba(108,79,212,.35),rgba(192,38,211,.2));color:#fff;}
+.sb-item.active .sb-icon{background:linear-gradient(135deg,var(--pu),var(--fu));}
+.sb-icon{width:28px;height:28px;border-radius:8px;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.sb-alert-dot{width:7px;height:7px;border-radius:50%;background:#EF4444;margin-left:auto;flex-shrink:0;}
+.sb-user{padding:16px;border-top:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:10px;}
+.sb-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--pu),var(--fu));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:14px;flex-shrink:0;}
+.sb-uname{font-size:12px;font-weight:700;color:#fff;}
+.sb-urole{font-size:10px;color:rgba(167,139,250,.5);}
+
+/* MAIN */
+.main{flex:1;overflow-y:auto;display:flex;flex-direction:column;}
+.topbar{background:var(--bg2);border-bottom:1px solid var(--bd);padding:16px 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10;}
+.topbar-title{font-size:18px;font-weight:900;color:var(--tx);}
+.topbar-sub{font-size:12px;color:var(--tm);margin-top:2px;}
+.topbar-right{display:flex;align-items:center;gap:12px;}
+.tb-btn{background:var(--pu3);border:none;color:var(--pu);font-family:'Nunito',sans-serif;font-size:12px;font-weight:700;padding:8px 16px;border-radius:20px;cursor:pointer;transition:all .2s;}
+.tb-btn:hover{background:var(--pu);color:#fff;}
+.tb-btn.primary{background:linear-gradient(135deg,var(--pu),var(--fu));color:#fff;}
+.notif-btn{width:36px;height:36px;border-radius:50%;background:var(--bg3);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;position:relative;}
+.notif-dot{position:absolute;top:6px;right:6px;width:8px;height:8px;border-radius:50%;background:#EF4444;border:2px solid var(--bg2);}
+
+.content{padding:24px 28px;display:flex;flex-direction:column;gap:20px;}
+
+/* STAT CARDS */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+.stat-card{background:var(--bg2);border-radius:16px;padding:18px 20px;box-shadow:var(--sh);border:1px solid var(--bd);position:relative;overflow:hidden;transition:transform .2s,box-shadow .2s;cursor:pointer;}
+.stat-card:hover{transform:translateY(-2px);box-shadow:var(--sh2);}
+.stat-card::after{content:'';position:absolute;top:-20px;right:-20px;width:80px;height:80px;border-radius:50%;opacity:.07;}
+.stat-card.green::after{background:var(--gr);}
+.stat-card.amber::after{background:var(--am);}
+.stat-card.red::after{background:var(--rd);}
+.stat-card.purple::after{background:var(--pu);}
+.stat-icon{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:12px;}
+.stat-icon.green{background:rgba(5,150,105,.1);}
+.stat-icon.amber{background:rgba(217,119,6,.1);}
+.stat-icon.red{background:rgba(220,38,38,.1);}
+.stat-icon.purple{background:rgba(108,79,212,.1);}
+.stat-num{font-size:32px;font-weight:900;color:var(--tx);line-height:1;}
+.stat-label{font-size:12px;color:var(--tm);margin-top:4px;font-weight:600;}
+.stat-trend{font-size:11px;font-weight:700;margin-top:8px;display:flex;align-items:center;gap:4px;}
+.stat-trend.up{color:var(--rd);}
+.stat-trend.down{color:var(--gr);}
+
+/* MAIN GRID */
+.main-grid{display:grid;grid-template-columns:1fr 340px;gap:20px;}
+
+/* ALERTS TABLE */
+.card{background:var(--bg2);border-radius:16px;box-shadow:var(--sh);border:1px solid var(--bd);overflow:hidden;}
+.card-header{padding:18px 20px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--bd);}
+.card-title{font-size:15px;font-weight:800;color:var(--tx);}
+.card-sub{font-size:12px;color:var(--tm);margin-top:2px;}
+.badge{display:inline-flex;align-items:center;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;}
+.badge.red{background:rgba(220,38,38,.1);color:var(--rd);}
+.badge.amber{background:rgba(217,119,6,.1);color:var(--am);}
+.badge.green{background:rgba(5,150,105,.1);color:var(--gr);}
+.badge.purple{background:rgba(108,79,212,.1);color:var(--pu);}
+
+.alert-list{padding:0;}
+.alert-item{padding:14px 20px;display:flex;align-items:center;gap:14px;border-bottom:1px solid var(--bd);cursor:pointer;transition:background .15s;}
+.alert-item:last-child{border-bottom:none;}
+.alert-item:hover{background:var(--bg3);}
+.alert-level{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.alert-level.alto{background:var(--rd);box-shadow:0 0 0 3px rgba(220,38,38,.15);}
+.alert-level.medio{background:var(--am);box-shadow:0 0 0 3px rgba(217,119,6,.15);}
+.alert-level.bajo{background:var(--gr);box-shadow:0 0 0 3px rgba(5,150,105,.15);}
+.alert-id{font-size:13px;font-weight:800;color:var(--tx);min-width:80px;}
+.alert-info{flex:1;}
+.alert-type{font-size:13px;font-weight:600;color:var(--tx);}
+.alert-meta{font-size:11px;color:var(--tm);margin-top:2px;}
+.alert-time{font-size:11px;color:var(--th);text-align:right;min-width:60px;}
+.alert-actions{display:flex;gap:6px;}
+.act-btn{background:var(--bg3);border:none;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:700;color:var(--pu);cursor:pointer;transition:all .15s;font-family:'Nunito',sans-serif;}
+.act-btn:hover{background:var(--pu);color:#fff;}
+.act-btn.danger{color:var(--rd);}
+.act-btn.danger:hover{background:var(--rd);color:#fff;}
+
+/* RIGHT COLUMN */
+.right-col{display:flex;flex-direction:column;gap:16px;}
+
+/* RISK CHART */
+.chart-wrap{padding:16px 20px;}
+.chart-bars{display:flex;align-items:flex-end;gap:6px;height:100px;margin-top:12px;}
+.bar-group{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;}
+.bar{width:100%;border-radius:4px 4px 0 0;transition:height .6s cubic-bezier(.34,1.56,.64,1);}
+.bar-label{font-size:10px;color:var(--th);font-weight:600;}
+
+/* STUDENTS */
+.student-list{padding:0 20px 16px;}
+.student-item{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--bd);}
+.student-item:last-child{border-bottom:none;}
+.student-avatar{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#fff;flex-shrink:0;}
+.student-info{flex:1;}
+.student-id{font-size:13px;font-weight:700;color:var(--tx);}
+.student-detail{font-size:11px;color:var(--tm);margin-top:1px;}
+.risk-pill{font-size:10px;font-weight:800;padding:3px 10px;border-radius:12px;}
+
+/* NEWS FEED */
+.news-list{padding:0 20px 16px;}
+.news-item{padding:10px 0;border-bottom:1px solid var(--bd);cursor:pointer;}
+.news-item:last-child{border-bottom:none;}
+.news-source{font-size:10px;font-weight:800;color:var(--pu);letter-spacing:.5px;text-transform:uppercase;}
+.news-title{font-size:12px;font-weight:700;color:var(--tx);margin-top:3px;line-height:1.4;}
+.news-time{font-size:10px;color:var(--th);margin-top:3px;}
+
+/* PROTOCOL */
+.protocol-list{padding:0 20px 16px;}
+.protocol-step{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--bd);}
+.protocol-step:last-child{border-bottom:none;}
+.step-num{width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,var(--pu),var(--fu));color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.step-text{font-size:12px;color:var(--tx);font-weight:600;line-height:1.4;}
+.step-sub{font-size:11px;color:var(--tm);margin-top:2px;}
+
+/* BOTTOM GRID */
+.bottom-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(26,16,64,.5);display:flex;align-items:center;justify-content:center;z-index:100;display:none;}
+.modal-overlay.on{display:flex;}
+.modal{background:var(--bg2);border-radius:20px;padding:28px;max-width:440px;width:90%;box-shadow:0 20px 60px rgba(26,16,64,.3);}
+.modal-title{font-size:18px;font-weight:900;color:var(--tx);margin-bottom:6px;}
+.modal-sub{font-size:13px;color:var(--tm);margin-bottom:20px;line-height:1.5;}
+.modal-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--bd);font-size:13px;}
+.modal-row:last-of-type{border-bottom:none;}
+.modal-key{color:var(--tm);font-weight:600;}
+.modal-val{color:var(--tx);font-weight:700;}
+.modal-btns{display:flex;gap:10px;margin-top:20px;}
+.modal-btn{flex:1;padding:11px;border-radius:12px;border:none;font-family:'Nunito',sans-serif;font-size:13px;font-weight:800;cursor:pointer;transition:all .2s;}
+.modal-btn.primary{background:linear-gradient(135deg,var(--pu),var(--fu));color:#fff;}
+.modal-btn.ghost{background:var(--bg3);color:var(--pu);}
+
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.content>*{animation:fadeIn .4s ease forwards;opacity:0;}
+.content>*:nth-child(1){animation-delay:.05s}
+.content>*:nth-child(2){animation-delay:.12s}
+.content>*:nth-child(3){animation-delay:.2s}
+.content>*:nth-child(4){animation-delay:.28s}
+.content>*:nth-child(5){animation-delay:.36s}
+
+@media(max-width:900px){
+  .sidebar{width:60px;}
+  .sb-logo-name,.sb-logo-sub,.sb-badge,.sb-item span,.sb-uname,.sb-urole,.sb-section{display:none;}
+  .sb-item{justify-content:center;padding:10px;}
+  .sb-alert-dot{display:none;}
+  .stats-row{grid-template-columns:repeat(2,1fr);}
+  .main-grid{grid-template-columns:1fr;}
+  .bottom-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sb-logo">
+    <div class="sb-logo-name">YoTeCreo</div>
+    <div class="sb-logo-sub">PANEL DE CONTROL</div>
+    <div class="sb-badge">✦ DEMO</div>
+  </div>
+  <div class="sb-nav">
+    <div class="sb-section">Principal</div>
+    <div class="sb-item active" data-view="dashboard" onclick="setView('dashboard',this)">
+      <div class="sb-icon">📊</div>
+      <span>Dashboard</span>
+    </div>
+    <div class="sb-item" data-view="alertas" onclick="setView('alertas',this)">
+      <div class="sb-icon">🚨</div>
+      <span>Alertas</span>
+      <div class="sb-alert-dot"></div>
+    </div>
+    <div class="sb-item" data-view="alumnos" onclick="setView('alumnos',this)">
+      <div class="sb-icon">👥</div>
+      <span>Alumnos</span>
+    </div>
+    <div class="sb-section">Recursos</div>
+    <div class="sb-item" data-view="protocolo" onclick="setView('protocolo',this)">
+      <div class="sb-icon">📋</div>
+      <span>Protocolo</span>
+    </div>
+    <div class="sb-item" data-view="noticias" onclick="setView('noticias',this)">
+      <div class="sb-icon">📰</div>
+      <span>Noticias</span>
+    </div>
+    <div class="sb-item" data-view="legislacion" onclick="setView('legislacion',this)">
+      <div class="sb-icon">⚖️</div>
+      <span>Legislación</span>
+    </div>
+    <div class="sb-section">Datos</div>
+    <div class="sb-item" data-view="estadisticas" onclick="setView('estadisticas',this)">
+      <div class="sb-icon">📈</div>
+      <span>Estadísticas</span>
+    </div>
+    <div class="sb-item" data-view="evidencias" onclick="setView('evidencias',this)">
+      <div class="sb-icon">🔒</div>
+      <span>Evidencias</span>
+    </div>
+  </div>
+  <div class="sb-user">
+    <div class="sb-avatar">ML</div>
+    <div>
+      <div class="sb-uname">María López</div>
+      <div class="sb-urole">Orientadora</div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="main">
+  <div class="topbar">
+    <div>
+      <div class="topbar-title" id="topbar-title">Dashboard — Vista general</div>
+      <div class="topbar-sub" id="topbar-sub">IES Ramón y Cajal · Curso 2025-26 · Actualizado hace 3 min</div>
+    </div>
+    <div class="topbar-right">
+      <button class="tb-btn" onclick="window.location.href='https://luzcwong.github.io/YoTeCreo/'">← Volver a la demo</button>
+      <button class="tb-btn" onclick="exportReport()">↓ Exportar informe</button>
+      <button class="tb-btn primary" onclick="showModal('nueva')">+ Nueva intervención</button>
+      <button class="notif-btn">🔔<div class="notif-dot"></div></button>
+    </div>
+  </div>
+
+  <div class="content" id="main-content">
+
+    <!-- ── VIEW: DASHBOARD ── -->
+    <div id="view-dashboard" class="view-section" style="display:flex;flex-direction:column;gap:20px;">
+
+    <!-- STATS -->
+    <div class="stats-row">
+      <div class="stat-card red" data-view="alertas" onclick="setView('alertas',this)">
+        <div class="stat-icon red">🚨</div>
+        <div class="stat-num">3</div>
+        <div class="stat-label">Alertas activas hoy</div>
+        <div class="stat-trend up">↑ 2 más que ayer</div>
+      </div>
+      <div class="stat-card amber">
+        <div class="stat-icon amber">⚠️</div>
+        <div class="stat-num">7</div>
+        <div class="stat-label">Casos en seguimiento</div>
+        <div class="stat-trend down">↓ 1 resuelto esta semana</div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-icon green">✅</div>
+        <div class="stat-num">14</div>
+        <div class="stat-label">Intervenciones este mes</div>
+        <div class="stat-trend down">↑ 4 más que el mes anterior</div>
+      </div>
+      <div class="stat-card purple">
+        <div class="stat-icon purple">💬</div>
+        <div class="stat-num">89</div>
+        <div class="stat-label">Conversaciones con Yoti</div>
+        <div class="stat-trend down">Esta semana · +23%</div>
+      </div>
+    </div>
+
+    <!-- MAIN GRID -->
+    <div class="main-grid">
+
+      <!-- ALERTS TABLE -->
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Alertas recientes</div>
+            <div class="card-sub">Ordenadas por nivel de urgencia</div>
+          </div>
+          <span class="badge red">3 urgentes</span>
+        </div>
+        <div class="alert-list">
+          <div class="alert-item" onclick="showModal('alto')">
+            <div class="alert-level alto"></div>
+            <div class="alert-id">Alumno #7743</div>
+            <div class="alert-info">
+              <div class="alert-type">Violencia física recurrente</div>
+              <div class="alert-meta">4º ESO · Patrón detectado: 3 días · Patio recreo</div>
+            </div>
+            <div class="alert-time">08:42</div>
+            <div class="alert-actions">
+              <button class="act-btn" onclick="event.stopPropagation();showModal('alto')">Ver</button>
+              <button class="act-btn danger" onclick="event.stopPropagation()">Urgente</button>
+            </div>
+          </div>
+          <div class="alert-item" onclick="showModal('alto2')">
+            <div class="alert-level alto"></div>
+            <div class="alert-id">Alumno #3821</div>
+            <div class="alert-info">
+              <div class="alert-type">Acoso grupal · exclusión social</div>
+              <div class="alert-meta">2º ESO · Primera alerta · Miedo expresado</div>
+            </div>
+            <div class="alert-time">07:15</div>
+            <div class="alert-actions">
+              <button class="act-btn" onclick="event.stopPropagation();showModal('alto2')">Ver</button>
+              <button class="act-btn danger" onclick="event.stopPropagation()">Urgente</button>
+            </div>
+          </div>
+          <div class="alert-item" onclick="showModal('medio')">
+            <div class="alert-level medio"></div>
+            <div class="alert-id">Alumno #5502</div>
+            <div class="alert-info">
+              <div class="alert-type">Ciberacoso · mensajes amenazantes</div>
+              <div class="alert-meta">3º ESO · Segundo episodio · Fuera del colegio</div>
+            </div>
+            <div class="alert-time">Ayer</div>
+            <div class="alert-actions">
+              <button class="act-btn" onclick="event.stopPropagation();showModal('medio')">Ver</button>
+            </div>
+          </div>
+          <div class="alert-item">
+            <div class="alert-level medio"></div>
+            <div class="alert-id">Alumno #9104</div>
+            <div class="alert-info">
+              <div class="alert-type">Tristeza persistente · aislamiento</div>
+              <div class="alert-meta">1º ESO · Sin escalada · Seguimiento activo</div>
+            </div>
+            <div class="alert-time">Lun</div>
+            <div class="alert-actions">
+              <button class="act-btn">Ver</button>
+            </div>
+          </div>
+          <div class="alert-item">
+            <div class="alert-level bajo"></div>
+            <div class="alert-id">Alumno #2267</div>
+            <div class="alert-info">
+              <div class="alert-type">Check-in emocional bajo</div>
+              <div class="alert-meta">6º Primaria · Primer contacto con Yoti</div>
+            </div>
+            <div class="alert-time">Lun</div>
+            <div class="alert-actions">
+              <button class="act-btn">Ver</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT COLUMN -->
+      <div class="right-col">
+
+        <!-- CHART -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Riesgo semanal</div>
+              <div class="card-sub">Últimos 7 días</div>
+            </div>
+          </div>
+          <div class="chart-wrap">
+            <div class="chart-bars" id="chart-bars"></div>
+          </div>
+        </div>
+
+        <!-- AT-RISK STUDENTS -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Alumnos en seguimiento</div>
+              <div class="card-sub">Perfiles anónimos</div>
+            </div>
+            <span class="badge purple">7 activos</span>
+          </div>
+          <div class="student-list">
+            <div class="student-item">
+              <div class="student-avatar" style="background:linear-gradient(135deg,#EF4444,#DC2626);">A</div>
+              <div class="student-info">
+                <div class="student-id">Alumno #7743</div>
+                <div class="student-detail">4º ESO · 3 alertas esta semana</div>
+              </div>
+              <div class="risk-pill badge red">Alto</div>
+            </div>
+            <div class="student-item">
+              <div class="student-avatar" style="background:linear-gradient(135deg,#EF4444,#DC2626);">B</div>
+              <div class="student-info">
+                <div class="student-id">Alumno #3821</div>
+                <div class="student-detail">2º ESO · 1ª alerta hoy</div>
+              </div>
+              <div class="risk-pill badge red">Alto</div>
+            </div>
+            <div class="student-item">
+              <div class="student-avatar" style="background:linear-gradient(135deg,#F59E0B,#D97706);">C</div>
+              <div class="student-info">
+                <div class="student-id">Alumno #5502</div>
+                <div class="student-detail">3º ESO · Seguimiento activo</div>
+              </div>
+              <div class="risk-pill badge amber">Medio</div>
+            </div>
+            <div class="student-item">
+              <div class="student-avatar" style="background:linear-gradient(135deg,#F59E0B,#D97706);">D</div>
+              <div class="student-info">
+                <div class="student-id">Alumno #9104</div>
+                <div class="student-detail">1º ESO · Aislamiento leve</div>
+              </div>
+              <div class="risk-pill badge amber">Medio</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- BOTTOM GRID -->
+    <div class="bottom-grid">
+
+      <!-- NEWS -->
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Noticias · Bullying</div>
+            <div class="card-sub">Actualizado automáticamente</div>
+          </div>
+          <span class="badge purple">Auto</span>
+        </div>
+        <div class="news-list">
+          <div class="news-item">
+            <div class="news-source">Ministerio de Educación</div>
+            <div class="news-title">Nueva guía de intervención ante acoso escolar para centros de secundaria 2025</div>
+            <div class="news-time">Hace 2 horas</div>
+          </div>
+          <div class="news-item">
+            <div class="news-source">Save the Children</div>
+            <div class="news-title">1 de cada 4 adolescentes en España sufre ciberacoso de forma recurrente según nuevo informe</div>
+            <div class="news-time">Hace 5 horas</div>
+          </div>
+          <div class="news-item">
+            <div class="news-source">AEPD</div>
+            <div class="news-title">Actualización del protocolo de protección de datos para apps educativas dirigidas a menores</div>
+            <div class="news-time">Ayer</div>
+          </div>
+          <div class="news-item">
+            <div class="news-source">UNICEF España</div>
+            <div class="news-title">Guía para orientadores: cómo hablar con víctimas de acoso sin re-traumatizar</div>
+            <div class="news-time">Hace 2 días</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PROTOCOL -->
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Protocolo de actuación</div>
+            <div class="card-sub">Pasos ante alerta de riesgo alto</div>
+          </div>
+          <span class="badge green">Activo</span>
+        </div>
+        <div class="protocol-list">
+          <div class="protocol-step">
+            <div class="step-num">1</div>
+            <div>
+              <div class="step-text">Contacto privado con el alumno</div>
+              <div class="step-sub">Dentro de las primeras 2 horas · tono calmado</div>
+            </div>
+          </div>
+          <div class="protocol-step">
+            <div class="step-num">2</div>
+            <div>
+              <div class="step-text">Revisar evidencias en Yoti</div>
+              <div class="step-sub">Timestamps · nivel de riesgo · patrón temporal</div>
+            </div>
+          </div>
+          <div class="protocol-step">
+            <div class="step-num">3</div>
+            <div>
+              <div class="step-text">Notificar a dirección y familia</div>
+              <div class="step-sub">Por escrito · con resumen de evidencias</div>
+            </div>
+          </div>
+          <div class="protocol-step">
+            <div class="step-num">4</div>
+            <div>
+              <div class="step-text">Reunión con todas las partes</div>
+              <div class="step-sub">Máximo 48h · acta firmada · plan de seguimiento</div>
+            </div>
+          </div>
+          <div class="protocol-step">
+            <div class="step-num">5</div>
+            <div>
+              <div class="step-text">Si no se resuelve — denuncia</div>
+              <div class="step-sub">Fiscalía de Menores · Inspección Educativa</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- FOOTER -->
+    <div style="text-align:center;padding:8px 0 4px;font-size:11px;color:var(--th);">
+      Concepto, Diseño y Desarrollo · <strong style="color:var(--pu);">Luz C. Wong Naranjo</strong> · Marketing Digital &amp; IA Aplicada a Negocios
+    </div>
+    </div><!-- end view-dashboard -->
+
+    <!-- ── VIEW: ALERTAS ── -->
+    <div id="view-alertas" class="view-section" style="display:none;flex-direction:column;gap:20px;">
+      <div class="card">
+        <div class="card-header">
+          <div><div class="card-title">Todas las alertas activas</div><div class="card-sub">Ordenadas por nivel de urgencia · actualizado hace 3 min</div></div>
+          <span class="badge red">3 urgentes</span>
+        </div>
+        <div class="alert-list">
+          <div class="alert-item" onclick="showModal('alto')">
+            <div class="alert-level alto"></div><div class="alert-id">Alumno #7743</div>
+            <div class="alert-info"><div class="alert-type">Violencia física recurrente</div><div class="alert-meta">4º ESO · Patrón: 3 días · Patio recreo</div></div>
+            <div class="alert-time">08:42</div>
+            <div class="alert-actions"><button class="act-btn" onclick="event.stopPropagation();showModal('alto')">Ver</button><button class="act-btn danger" onclick="event.stopPropagation()">Urgente</button></div>
+          </div>
+          <div class="alert-item" onclick="showModal('alto2')">
+            <div class="alert-level alto"></div><div class="alert-id">Alumno #3821</div>
+            <div class="alert-info"><div class="alert-type">Acoso grupal · exclusión social</div><div class="alert-meta">2º ESO · Primera alerta · Miedo expresado</div></div>
+            <div class="alert-time">07:15</div>
+            <div class="alert-actions"><button class="act-btn" onclick="event.stopPropagation();showModal('alto2')">Ver</button><button class="act-btn danger" onclick="event.stopPropagation()">Urgente</button></div>
+          </div>
+          <div class="alert-item" onclick="showModal('medio')">
+            <div class="alert-level medio"></div><div class="alert-id">Alumno #5502</div>
+            <div class="alert-info"><div class="alert-type">Ciberacoso · mensajes amenazantes</div><div class="alert-meta">3º ESO · Segundo episodio · Fuera del colegio</div></div>
+            <div class="alert-time">Ayer</div>
+            <div class="alert-actions"><button class="act-btn" onclick="event.stopPropagation();showModal('medio')">Ver</button></div>
+          </div>
+          <div class="alert-item">
+            <div class="alert-level medio"></div><div class="alert-id">Alumno #9104</div>
+            <div class="alert-info"><div class="alert-type">Tristeza persistente · aislamiento</div><div class="alert-meta">1º ESO · Sin escalada · Seguimiento activo</div></div>
+            <div class="alert-time">Lun</div>
+            <div class="alert-actions"><button class="act-btn">Ver</button></div>
+          </div>
+          <div class="alert-item">
+            <div class="alert-level bajo"></div><div class="alert-id">Alumno #2267</div>
+            <div class="alert-info"><div class="alert-type">Check-in emocional bajo</div><div class="alert-meta">6º Primaria · Primer contacto con Yoti</div></div>
+            <div class="alert-time">Lun</div>
+            <div class="alert-actions"><button class="act-btn">Ver</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── VIEW: ALUMNOS ── -->
+    <div id="view-alumnos" class="view-section" style="display:none;flex-direction:column;gap:20px;">
+      <div class="card">
+        <div class="card-header">
+          <div><div class="card-title">Alumnos en seguimiento</div><div class="card-sub">Perfiles anónimos · datos cifrados</div></div>
+          <span class="badge purple">7 activos</span>
+        </div>
+        <div class="alert-list">
+          <div class="alert-item"><div class="alert-level alto"></div><div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#EF4444,#DC2626);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:13px;flex-shrink:0;">A</div><div class="alert-info"><div class="alert-type">Alumno #7743 · 4º ESO</div><div class="alert-meta">3 alertas esta semana · último contacto hoy 08:42</div></div><span class="badge red">Alto</span></div>
+          <div class="alert-item"><div class="alert-level alto"></div><div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#EF4444,#DC2626);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:13px;flex-shrink:0;">B</div><div class="alert-info"><div class="alert-type">Alumno #3821 · 2º ESO</div><div class="alert-meta">1ª alerta hoy · primera sesión con Yoti</div></div><span class="badge red">Alto</span></div>
+          <div class="alert-item"><div class="alert-level medio"></div><div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#F59E0B,#D97706);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:13px;flex-shrink:0;">C</div><div class="alert-info"><div class="alert-type">Alumno #5502 · 3º ESO</div><div class="alert-meta">Seguimiento activo · 2 episodios en 2 semanas</div></div><span class="badge amber">Medio</span></div>
+          <div class="alert-item"><div class="alert-level medio"></div><div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#F59E0B,#D97706);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:13px;flex-shrink:0;">D</div><div class="alert-info"><div class="alert-type">Alumno #9104 · 1º ESO</div><div class="alert-meta">Aislamiento leve · check-ins diarios activos</div></div><span class="badge amber">Medio</span></div>
+          <div class="alert-item"><div class="alert-level bajo"></div><div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#059669,#047857);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:13px;flex-shrink:0;">E</div><div class="alert-info"><div class="alert-type">Alumno #2267 · 6º Primaria</div><div class="alert-meta">Check-in bajo · primer contacto esta semana</div></div><span class="badge green">Bajo</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── VIEW: PROTOCOLO ── -->
+    <div id="view-protocolo" class="view-section" style="display:none;flex-direction:column;gap:20px;">
+      <div class="card">
+        <div class="card-header">
+          <div><div class="card-title">Protocolo de actuación ante bullying</div><div class="card-sub">Basado en el protocolo oficial del Ministerio de Educación</div></div>
+          <span class="badge green">Activo</span>
+        </div>
+        <div class="protocol-list">
+          <div class="protocol-step"><div class="step-num">1</div><div><div class="step-text">Contacto privado con el alumno</div><div class="step-sub">Dentro de las primeras 2 horas · tono calmado · escucha sin juzgar</div></div></div>
+          <div class="protocol-step"><div class="step-num">2</div><div><div class="step-text">Revisar evidencias en Yoti</div><div class="step-sub">Timestamps · nivel de riesgo · patrón temporal · tipo de acoso</div></div></div>
+          <div class="protocol-step"><div class="step-num">3</div><div><div class="step-text">Reunión del equipo directivo</div><div class="step-sub">Con tutor y orientador · registrar por escrito · valorar intervención</div></div></div>
+          <div class="protocol-step"><div class="step-num">4</div><div><div class="step-text">Notificar a las familias</div><div class="step-sub">Por separado · víctima y agresor · con resumen de evidencias · entrevista presencial</div></div></div>
+          <div class="protocol-step"><div class="step-num">5</div><div><div class="step-text">Informar a Inspección Educativa</div><div class="step-sub">Obligatorio en todos los casos estimados como acoso · registro oficial</div></div></div>
+          <div class="protocol-step"><div class="step-num">6</div><div><div class="step-text">Plan de seguimiento semanal</div><div class="step-sub">Reunión semanal · acta firmada · evaluación del plan · ajuste de medidas</div></div></div>
+          <div class="protocol-step"><div class="step-num">7</div><div><div class="step-text">Si no se resuelve — denuncia</div><div class="step-sub">Fiscalía de Menores · Inspección Educativa · Policía Nacional 900 018 018</div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── VIEW: NOTICIAS ── -->
+    <div id="view-noticias" class="view-section" style="display:none;flex-direction:column;gap:20px;">
+      <div class="card">
+        <div class="card-header">
+          <div><div class="card-title">Noticias sobre bullying</div><div class="card-sub">Actualizado automáticamente desde fuentes oficiales</div></div>
+          <span class="badge purple">Auto · RSS</span>
+        </div>
+        <div class="news-list">
+          <div class="news-item"><div class="news-source">Ministerio de Educación</div><div class="news-title">Nueva guía de intervención ante acoso escolar para centros de secundaria 2025</div><div class="news-time">Hace 2 horas</div></div>
+          <div class="news-item"><div class="news-source">Save the Children</div><div class="news-title">1 de cada 4 adolescentes en España sufre ciberacoso de forma recurrente según nuevo informe</div><div class="news-time">Hace 5 horas</div></div>
+          <div class="news-item"><div class="news-source">AEPD</div><div class="news-title">Actualización del protocolo de protección de datos para apps educativas dirigidas a menores</div><div class="news-time">Ayer</div></div>
+          <div class="news-item"><div class="news-source">UNICEF España</div><div class="news-title">Guía para orientadores: cómo hablar con víctimas de acoso sin re-traumatizar</div><div class="news-time">Hace 2 días</div></div>
+          <div class="news-item"><div class="news-source">ANAR Foundation</div><div class="news-title">Datos clave 2024: el ciberacoso afecta más a niñas de 11-12 años en España</div><div class="news-time">Hace 3 días</div></div>
+          <div class="news-item"><div class="news-source">Fundación Mutua Madrileña</div><div class="news-title">El 20% de casos de ciberacoso ya involucra imágenes manipuladas con IA según nuevo estudio</div><div class="news-time">Hace 4 días</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── VIEW: LEGISLACION ── -->
+    <div id="view-legislacion" class="view-section" style="display:none;flex-direction:column;gap:20px;">
+      <div class="card">
+        <div class="card-header">
+          <div><div class="card-title">Legislación vigente</div><div class="card-sub">Marco legal aplicable · actualizado automáticamente</div></div>
+          <span class="badge green">Vigente</span>
+        </div>
+        <div class="protocol-list">
+          <div class="protocol-step"><div class="step-num" style="background:linear-gradient(135deg,var(--pu),var(--fu));font-size:9px;">UE</div><div><div class="step-text">RGPD (UE) 2016/679</div><div class="step-sub">Reglamento europeo de protección de datos · edad mínima 16 años (España lo fija en 14)</div></div></div>
+          <div class="protocol-step"><div class="step-num" style="background:linear-gradient(135deg,var(--pu),var(--fu));font-size:9px;">ES</div><div><div class="step-text">LOPDGDD — Ley Orgánica 3/2018</div><div class="step-sub">14 años: edad mínima de consentimiento autónomo en España · art. 7</div></div></div>
+          <div class="protocol-step"><div class="step-num" style="background:linear-gradient(135deg,var(--pu),var(--fu));font-size:9px;">ES</div><div><div class="step-text">LOPJM — Ley Orgánica 1/1996</div><div class="step-sub">Protección Jurídica del Menor · principio de interés superior del menor</div></div></div>
+          <div class="protocol-step"><div class="step-num" style="background:linear-gradient(135deg,var(--pu),var(--fu));font-size:9px;">ED</div><div><div class="step-text">Plan de Convivencia Escolar</div><div class="step-sub">Ministerio de Educación · obliga a los centros a tener protocolo antibullying activo</div></div></div>
+          <div class="protocol-step"><div class="step-num" style="background:linear-gradient(135deg,var(--pu),var(--fu));font-size:9px;">MD</div><div><div class="step-text">Orden 6/2023 · Comunidad de Madrid</div><div class="step-sub">Unidad de convivencia y contra el acoso escolar · protocolos obligatorios para centros</div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── VIEW: ESTADISTICAS ── -->
+    <div id="view-estadisticas" class="view-section" style="display:none;flex-direction:column;gap:20px;">
+      <div class="stats-row">
+        <div class="stat-card red"><div class="stat-icon red">🚨</div><div class="stat-num">47</div><div class="stat-label">Alertas este trimestre</div><div class="stat-trend up">↑ 12% vs trimestre anterior</div></div>
+        <div class="stat-card green"><div class="stat-icon green">✅</div><div class="stat-label">Tasa de resolución</div><div class="stat-num">78%</div><div class="stat-trend down">↑ 8% vs año pasado</div></div>
+        <div class="stat-card amber"><div class="stat-icon amber">⏱️</div><div class="stat-num">2.4h</div><div class="stat-label">Tiempo medio respuesta</div><div class="stat-trend down">↓ 1.2h vs año pasado</div></div>
+        <div class="stat-card purple"><div class="stat-icon purple">💬</div><div class="stat-num">312</div><div class="stat-label">Sesiones con Yoti</div><div class="stat-trend down">Este trimestre</div></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div><div class="card-title">Tipos de acoso detectados</div><div class="card-sub">Este trimestre · datos anonimizados</div></div></div>
+        <div style="padding:20px;display:flex;flex-direction:column;gap:12px;">
+          <div style="display:flex;align-items:center;gap:12px;"><div style="min-width:140px;font-size:13px;font-weight:700;color:var(--tx);">Verbal / psicológico</div><div style="flex:1;background:var(--bg3);border-radius:4px;height:12px;overflow:hidden;"><div style="width:62%;background:var(--pu);height:100%;border-radius:4px;"></div></div><div style="font-size:12px;font-weight:700;color:var(--pu);min-width:40px;text-align:right;">62%</div></div>
+          <div style="display:flex;align-items:center;gap:12px;"><div style="min-width:140px;font-size:13px;font-weight:700;color:var(--tx);">Exclusión social</div><div style="flex:1;background:var(--bg3);border-radius:4px;height:12px;overflow:hidden;"><div style="width:48%;background:var(--am);height:100%;border-radius:4px;"></div></div><div style="font-size:12px;font-weight:700;color:var(--am);min-width:40px;text-align:right;">48%</div></div>
+          <div style="display:flex;align-items:center;gap:12px;"><div style="min-width:140px;font-size:13px;font-weight:700;color:var(--tx);">Ciberacoso</div><div style="flex:1;background:var(--bg3);border-radius:4px;height:12px;overflow:hidden;"><div style="width:35%;background:var(--fu);height:100%;border-radius:4px;"></div></div><div style="font-size:12px;font-weight:700;color:var(--fu);min-width:40px;text-align:right;">35%</div></div>
+          <div style="display:flex;align-items:center;gap:12px;"><div style="min-width:140px;font-size:13px;font-weight:700;color:var(--tx);">Físico</div><div style="flex:1;background:var(--bg3);border-radius:4px;height:12px;overflow:hidden;"><div style="width:22%;background:var(--rd);height:100%;border-radius:4px;"></div></div><div style="font-size:12px;font-weight:700;color:var(--rd);min-width:40px;text-align:right;">22%</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── VIEW: EVIDENCIAS ── -->
+    <div id="view-evidencias" class="view-section" style="display:none;flex-direction:column;gap:20px;">
+      <div class="card">
+        <div class="card-header">
+          <div><div class="card-title">Evidencias cifradas</div><div class="card-sub">Acceso con doble autenticación · log auditado · AES-256</div></div>
+          <span class="badge red">🔒 Restringido</span>
+        </div>
+        <div class="alert-list">
+          <div class="alert-item"><div class="alert-level alto"></div><div class="alert-id">EV-2026-047</div><div class="alert-info"><div class="alert-type">Alumno #7743 · Violencia física</div><div class="alert-meta">3 sesiones · 4 evidencias · Formato PDF oficial · Válido para Fiscalía</div></div><div class="alert-time">Hoy</div><div class="alert-actions"><button class="act-btn">Descargar</button></div></div>
+          <div class="alert-item"><div class="alert-level alto"></div><div class="alert-id">EV-2026-046</div><div class="alert-info"><div class="alert-type">Alumno #3821 · Exclusión social</div><div class="alert-meta">1 sesión · 1 evidencia · Pendiente de ampliación</div></div><div class="alert-time">Hoy</div><div class="alert-actions"><button class="act-btn">Descargar</button></div></div>
+          <div class="alert-item"><div class="alert-level medio"></div><div class="alert-id">EV-2026-041</div><div class="alert-info"><div class="alert-type">Alumno #5502 · Ciberacoso</div><div class="alert-meta">3 sesiones · 6 evidencias · Formato PDF oficial</div></div><div class="alert-time">Ayer</div><div class="alert-actions"><button class="act-btn">Descargar</button></div></div>
+        </div>
+        <div style="padding:16px 20px;background:var(--bg3);border-top:1px solid var(--bd);font-size:12px;color:var(--tm);">🔒 Todas las evidencias están cifradas con AES-256. El acceso queda registrado en el log de auditoría. Solo personal autorizado con doble autenticación puede descargar.</div>
+      </div>
+    </div>
+
+  </div><!-- end main-content -->
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal" onclick="closeModal(event)">
+  <div class="modal" id="modal-content">
+    <div class="modal-title" id="modal-title">Detalle de alerta</div>
+    <div class="modal-sub" id="modal-sub"></div>
+    <div id="modal-rows"></div>
+    <div class="modal-btns">
+      <button class="modal-btn ghost" onclick="document.getElementById('modal').classList.remove('on')">Cerrar</button>
+      <button class="modal-btn primary" id="modal-action">Marcar intervención</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// Chart
+var days = ['Lun','Mar','Mié','Jue','Vie','Sáb','Hoy'];
+var altos = [1,0,2,1,3,0,3];
+var medios = [2,3,1,4,2,1,4];
+var cb = document.getElementById('chart-bars');
+days.forEach(function(d,i){
+  var g = document.createElement('div');
+  g.className = 'bar-group';
+  var maxH = 80;
+  var aH = Math.round((altos[i]/4)*maxH);
+  var mH = Math.round((medios[i]/5)*maxH);
+  g.innerHTML =
+    '<div class="bar" style="height:'+(aH+mH)+'px;background:linear-gradient(to top,rgba(217,119,6,.3) '+(mH)+'px,rgba(220,38,38,.5) '+(mH)+'px);"></div>'+
+    '<div class="bar-label">'+d+'</div>';
+  cb.appendChild(g);
+});
+
+// Modal data
+var modals = {
+  alto: {
+    title:'Alumno #7743 — Riesgo ALTO',
+    sub:'Patrón de violencia física detectado durante 3 días consecutivos. Yoti ha registrado 4 conversaciones con lenguaje de miedo intenso.',
+    rows:[
+      ['Nivel de riesgo','ALTO — Protocolo inmediato'],
+      ['Tipo','Violencia física recurrente'],
+      ['Curso','4º ESO · Grupo B'],
+      ['Primera alerta','Lunes 08:14'],
+      ['Última alerta','Hoy 08:42'],
+      ['Conversaciones con Yoti','4 en 3 días'],
+      ['Evidencias','Guardadas · AES-256 · Descargables'],
+      ['Notificado a','Dirección + Familia (círculo de confianza)']
+    ],
+    action:'Iniciar protocolo urgente'
+  },
+  alto2: {
+    title:'Alumno #3821 — Riesgo ALTO',
+    sub:'Primera alerta hoy. El alumno describe exclusión social sistemática por parte de un grupo. Menciona miedo a ir al recreo.',
+    rows:[
+      ['Nivel de riesgo','ALTO — Primera alerta'],
+      ['Tipo','Acoso grupal · exclusión social'],
+      ['Curso','2º ESO · Grupo A'],
+      ['Primera alerta','Hoy 07:15'],
+      ['Conversaciones con Yoti','1 hoy'],
+      ['Evidencias','Guardadas · AES-256'],
+      ['Notificado a','Tutor del aula (círculo de confianza)']
+    ],
+    action:'Contactar al alumno hoy'
+  },
+  medio: {
+    title:'Alumno #5502 — Riesgo MEDIO',
+    sub:'Segundo episodio de ciberacoso. El alumno recibe mensajes amenazantes fuera del horario escolar. Nivel de angustia moderado.',
+    rows:[
+      ['Nivel de riesgo','MEDIO — Seguimiento activo'],
+      ['Tipo','Ciberacoso · mensajes amenazantes'],
+      ['Curso','3º ESO · Grupo C'],
+      ['Primer episodio','Hace 2 semanas'],
+      ['Segundo episodio','Ayer'],
+      ['Conversaciones con Yoti','3 en total'],
+      ['Evidencias','Guardadas · AES-256'],
+      ['Notificado a','Orientadora (tú)']
+    ],
+    action:'Programar reunión familiar'
+  },
+  nueva: {
+    title:'Nueva intervención manual',
+    sub:'Registra una intervención que no ha sido generada por Yoti — por ejemplo, un caso comunicado directamente por un alumno o docente.',
+    rows:[
+      ['Tipo','A definir por el orientador'],
+      ['Alumno','ID anónimo asignado automáticamente'],
+      ['Fecha','Hoy · hora actual'],
+      ['Canal','Intervención manual · sin alerta de Yoti']
+    ],
+    action:'Crear intervención'
+  }
+};
+
+function showModal(type) {
+  var m = modals[type];
+  if(!m) return;
+  document.getElementById('modal-title').textContent = m.title;
+  document.getElementById('modal-sub').textContent = m.sub;
+  document.getElementById('modal-action').textContent = m.action;
+  var rows = document.getElementById('modal-rows');
+  rows.innerHTML = m.rows.map(function(r){
+    return '<div class="modal-row"><span class="modal-key">'+r[0]+'</span><span class="modal-val">'+r[1]+'</span></div>';
+  }).join('');
+  document.getElementById('modal').classList.add('on');
+}
+
+function closeModal(e) {
+  if(e.target.id === 'modal') document.getElementById('modal').classList.remove('on');
+}
+
+function setView(v, el) {
+  document.querySelectorAll('.sb-item').forEach(function(i){ i.classList.remove('active'); });
+  if(el) el.classList.add('active');
+  else { var items = document.querySelectorAll('.sb-item'); items.forEach(function(i){ if(i.getAttribute('data-view')===v) i.classList.add('active'); }); }
+
+  var titles = {
+    dashboard:'Dashboard — Vista general',
+    alertas:'Alertas activas',
+    alumnos:'Alumnos en seguimiento',
+    protocolo:'Protocolo de actuación',
+    noticias:'Noticias sobre bullying',
+    legislacion:'Legislación vigente',
+    estadisticas:'Estadísticas del centro',
+    evidencias:'Evidencias cifradas'
+  };
+  document.getElementById('topbar-title').textContent = titles[v] || 'Dashboard';
+
+  // Hide all sections, show the right one
+  document.querySelectorAll('.view-section').forEach(function(s){ s.style.display='none'; });
+  var target = document.getElementById('view-'+v);
+  if(target) target.style.display='flex';
+}
+
+function exportReport() {
+  alert('En la versión completa: exporta un PDF oficial con todas las alertas, intervenciones y estadísticas del mes.\n\nFormato válido para Inspección Educativa y Fiscalía de Menores.');
+}
+</script>
+</body>
+</html>
