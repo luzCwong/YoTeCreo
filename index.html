@@ -1,0 +1,1316 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>YoTeCreo — Demo con Perfiles</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Nunito+Sans:wght@400;600&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg-kids:#0F0A2A;--bg-teen:#060B18;
+  --pu:#6C4FD4;--pu2:#A78BFA;--pu3:#EDE9FF;
+  --cy:#67E8F9;--cy2:#0EA5E9;--cy3:#0C4A6E;
+  --fu:#C026D3;
+  --tx:#fff;--tm:rgba(200,185,255,.75);--th:rgba(167,139,250,.45);
+  --tx-teen:#fff;--tm-teen:rgba(186,230,253,.7);--th-teen:rgba(103,232,249,.35);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Nunito',sans-serif;background:var(--bg-kids);color:var(--tx);min-height:100vh;min-height:100dvh;overflow:hidden;transition:background 0.8s ease;}
+@supports(padding-bottom:env(safe-area-inset-bottom)){
+  .input-area{padding-bottom:calc(16px + env(safe-area-inset-bottom));}
+}
+body.teen{background:var(--bg-teen);}
+
+/* ── STARS ── */
+.stars{position:fixed;inset:0;pointer-events:none;z-index:0;}
+.star{position:absolute;border-radius:50%;background:#fff;animation:twinkle 3s ease-in-out infinite;}
+@keyframes twinkle{0%,100%{opacity:.1}50%{opacity:.5}}
+
+/* ── CALCULATOR ── */
+#calc-screen{
+  position:fixed;inset:0;z-index:10;display:none;
+  flex-direction:column;align-items:center;justify-content:center;
+  padding:16px;overflow-y:auto;
+}
+.calc-wrap{
+  background:#1C1C1E;border-radius:20px;padding:16px;
+  width:min(300px,92vw);box-shadow:0 16px 48px rgba(0,0,0,.6);
+}
+.calc-display{text-align:right;padding:10px 14px 8px;border-bottom:1px solid rgba(255,255,255,.08);margin-bottom:10px;}
+.calc-label{font-size:11px;color:#8E8E93;font-family:-apple-system,sans-serif;margin-bottom:3px;}
+.calc-num{font-size:36px;font-weight:200;color:#fff;font-family:-apple-system,sans-serif;letter-spacing:-1px;min-height:44px;}
+.calc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.calc-btn{
+  background:#333;border:none;border-radius:50%;
+  width:100%;aspect-ratio:1;font-size:18px;color:#fff;
+  cursor:pointer;font-family:-apple-system,sans-serif;
+  transition:transform .1s;display:flex;align-items:center;justify-content:center;
+}
+.calc-btn:active{transform:scale(.9);}
+.calc-btn.op{background:#FF9F0A;}
+.calc-btn.zero{grid-column:span 2;border-radius:32px;aspect-ratio:auto;padding:0 24px;height:56px;justify-content:flex-start;}
+.calc-btn.eq{background:#FF9F0A;}
+.calc-btn.fn{background:#636366;}
+.calc-code{color:var(--pu2);}
+@keyframes codeGlow{0%{color:var(--pu2);text-shadow:0 0 20px var(--pu2)}100%{color:var(--pu2);text-shadow:0 0 8px var(--pu2)}}
+.calc-hint{
+  text-align:center;margin-top:10px;font-size:12px;font-weight:700;
+  color:rgba(167,139,250,.85);font-family:'Nunito',sans-serif;
+  background:rgba(108,79,212,.15);border:1px solid rgba(167,139,250,.25);
+  border-radius:10px;padding:9px 12px;
+}
+@keyframes eqPulse{
+  0%,100%{background:#FF9F0A;transform:scale(1);}
+  50%{background:#C026D3;box-shadow:0 0 16px rgba(192,38,211,.7);transform:scale(1.1);}
+}
+.calc-btn.eq.hint{animation:eqPulse 0.9s ease-in-out infinite;}
+
+/* ── APP SCREEN ── */
+#app-screen{
+  position:fixed;inset:0;z-index:20;display:none;
+  flex-direction:column;height:100%;height:100dvh;overflow:hidden;
+}
+#app-screen.visible{display:flex;}
+
+/* TOPBAR */
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 14px 10px;flex-shrink:0;
+  flex-wrap:wrap;gap:6px;
+  background:rgba(0,0,0,.2);
+}
+.tb-logo{font-size:15px;font-weight:900;color:var(--pu2);}
+.tb-logo.teen{color:var(--cy);}
+.tb-back{
+  background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);
+  border-radius:20px;padding:6px 12px;font-size:11px;font-weight:800;
+  color:#fff;cursor:pointer;font-family:'Nunito',sans-serif;
+  white-space:nowrap;
+}
+.tb-back:active{background:rgba(255,255,255,.2);}
+.tb-profile{font-size:10px;font-weight:800;padding:4px 10px;border-radius:12px;white-space:nowrap;}
+.tb-profile.kids{background:rgba(108,79,212,.3);color:#C4B5FD;}
+.tb-profile.teen{background:rgba(103,232,249,.18);color:#67E8F9;}
+
+/* AVATAR AREA */
+.avatar-area{display:flex;justify-content:center;padding:4px 0 2px;flex-shrink:0;}
+@keyframes floatKids{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes floatTeen{0%,100%{transform:translateY(0)}40%{transform:translateY(-6px)}}
+.yoti-kids{animation:floatKids 3s ease-in-out infinite;}
+.yoti-teen{animation:floatTeen 3.5s ease-in-out infinite;}
+
+/* CHAT */
+.chat-area{
+  flex:1;overflow-y:auto;
+  padding:8px 14px 4px;
+  display:flex;flex-direction:column;gap:8px;
+  min-height:0;
+  -webkit-overflow-scrolling:touch;
+}
+.chat-area::-webkit-scrollbar{width:3px;}
+.chat-area::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:2px;}
+.msg{
+  max-width:88%;padding:10px 14px;border-radius:18px;
+  font-size:14px;line-height:1.55;
+  font-family:'Nunito Sans',sans-serif;font-weight:600;
+  word-break:break-word;
+}
+.msg.yoti{
+  align-self:flex-start;
+  background:rgba(108,79,212,.3);
+  color:#E9E3FF;
+  border-bottom-left-radius:4px;
+}
+.msg.yoti.teen{background:rgba(14,165,233,.25);color:#E0F2FE;}
+.msg.user{align-self:flex-end;background:var(--pu);color:#fff;border-bottom-right-radius:4px;}
+.msg.user.teen{background:var(--cy2);}
+@keyframes msgIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.msg{animation:msgIn .25s ease forwards;}
+
+/* TYPING */
+.typing{
+  align-self:flex-start;
+  background:rgba(108,79,212,.25);
+  border-radius:18px;border-bottom-left-radius:4px;
+  padding:10px 14px;display:flex;gap:5px;align-items:center;
+}
+.typing.teen{background:rgba(14,165,233,.18);}
+.dot-t{width:7px;height:7px;border-radius:50%;background:var(--pu2);animation:dotBounce 1.2s ease-in-out infinite;}
+.dot-t.teen{background:var(--cy);}
+.dot-t:nth-child(2){animation-delay:.2s}
+.dot-t:nth-child(3){animation-delay:.4s}
+@keyframes dotBounce{0%,80%,100%{transform:scale(.7);opacity:.4}40%{transform:scale(1);opacity:1}}
+
+/* QUICK REPLIES */
+.quick-wrap{
+  padding:6px 14px 4px;
+  display:flex;gap:6px;flex-wrap:wrap;
+  flex-shrink:0;
+}
+.qbtn{
+  background:rgba(255,255,255,.1);
+  border:1.5px solid rgba(255,255,255,.25);
+  border-radius:20px;padding:8px 14px;
+  font-size:13px;font-weight:700;
+  color:#fff;
+  cursor:pointer;font-family:'Nunito',sans-serif;
+  transition:all .15s;
+  white-space:normal;
+  word-break:break-word;
+  max-width:100%;
+  line-height:1.3;
+}
+.qbtn:active{background:rgba(108,79,212,.4);border-color:var(--pu2);}
+
+/* INPUT */
+.input-area{
+  padding:8px 14px 16px;
+  display:flex;gap:8px;align-items:center;
+  flex-shrink:0;
+  background:rgba(0,0,0,.15);
+}
+.input-wrap{
+  flex:1;
+  background:rgba(255,255,255,.1);
+  border:1.5px solid rgba(255,255,255,.2);
+  border-radius:24px;padding:10px 16px;
+  display:flex;align-items:center;
+  min-height:44px;
+}
+.input-wrap.teen{border-color:rgba(103,232,249,.25);}
+.chat-input{
+  background:none;border:none;outline:none;
+  color:#fff;font-family:'Nunito Sans',sans-serif;
+  font-size:15px;font-weight:600;flex:1;
+  -webkit-appearance:none;
+}
+.chat-input::placeholder{color:rgba(255,255,255,.4);}
+.send-btn{
+  width:44px;height:44px;border-radius:50%;border:none;
+  background:var(--pu);color:#fff;font-size:18px;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;transition:transform .15s;
+}
+.send-btn.teen{background:var(--cy2);}
+.send-btn:active{transform:scale(.93);}
+
+/* TRANSITION OVERLAY */
+#transition{position:fixed;inset:0;z-index:50;background:var(--pu);opacity:0;pointer-events:none;transition:opacity .3s;}
+#transition.teen-transition{background:var(--cy2);}
+
+/* FOOTER */
+.app-footer{text-align:center;padding:3px 0 6px;font-size:10px;color:rgba(255,255,255,.18);font-family:'Nunito',sans-serif;flex-shrink:0;}
+</style>
+</head>
+<body>
+
+<!-- STARS -->
+<div class="stars" id="stars"></div>
+
+<!-- SPLASH SCREEN -->
+<div id="splash-screen" style="
+  position:fixed;inset:0;z-index:30;
+  background:linear-gradient(160deg,#0F0A2A 0%,#1A1040 55%,#0D0820 100%);
+  display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
+  padding:32px 24px 24px;text-align:center;font-family:'Nunito',sans-serif;
+  overflow-y:auto;
+">
+  <!-- Animated background dots -->
+  <div style="position:absolute;inset:0;pointer-events:none;" id="splash-stars"></div>
+
+  <!-- Platform label small -->
+  <div style="font-size:10px;font-weight:800;color:rgba(167,139,250,.4);letter-spacing:2.5px;text-transform:uppercase;margin-bottom:14px;">
+    YoTeCreo
+  </div>
+
+  <!-- Yoti avatar animado -->
+  <div style="margin-bottom:6px;" id="splash-logo">
+  <svg style="animation:floatKids 3s ease-in-out infinite;" width="110" height="92" viewBox="140 175 400 310" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="spbK" cx="38%" cy="28%" r="65%"><stop offset="0%" stop-color="#c4b5fd"/><stop offset="35%" stop-color="#8b5cf6"/><stop offset="70%" stop-color="#6d28d9"/><stop offset="100%" stop-color="#3b0764"/></radialGradient>
+    <radialGradient id="spblK" cx="50%" cy="40%" r="55%"><stop offset="0%" stop-color="#faf5ff"/><stop offset="100%" stop-color="#ddd6fe"/></radialGradient>
+    <radialGradient id="spckK" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#f9a8d4" stop-opacity=".9"/><stop offset="100%" stop-color="#f9a8d4" stop-opacity="0"/></radialGradient>
+    <radialGradient id="sphK" cx="50%" cy="30%" r="60%"><stop offset="0%" stop-color="#fb7185"/><stop offset="100%" stop-color="#e11d48"/></radialGradient>
+    <radialGradient id="spshK" cx="40%" cy="25%" r="65%"><stop offset="0%" stop-color="#fde68a"/><stop offset="55%" stop-color="#f59e0b"/><stop offset="100%" stop-color="#b45309"/></radialGradient>
+    <filter id="spblf"><feGaussianBlur stdDeviation="3"/></filter>
+  </defs>
+  <ellipse cx="340" cy="330" rx="112" ry="109" fill="url(#spbK)"/>
+  <ellipse cx="350" cy="338" rx="95" ry="92" fill="#3b0764" opacity=".25"/>
+  <ellipse cx="340" cy="352" rx="68" ry="64" fill="url(#spblK)"/>
+  <ellipse cx="228" cy="244" rx="28" ry="36" fill="#6d28d9" transform="rotate(-18,228,244)"/>
+  <ellipse cx="228" cy="248" rx="13" ry="22" fill="#f9a8d4" opacity=".8" transform="rotate(-18,228,244)"/>
+  <ellipse cx="452" cy="244" rx="28" ry="36" fill="#6d28d9" transform="rotate(18,452,244)"/>
+  <ellipse cx="452" cy="248" rx="13" ry="22" fill="#f9a8d4" opacity=".8" transform="rotate(18,452,248)"/>
+  <ellipse cx="308" cy="286" rx="28" ry="30" fill="#2e1065" opacity=".4" filter="url(#spblf)"/>
+  <ellipse cx="308" cy="284" rx="24" ry="26" fill="white"/>
+  <ellipse cx="310" cy="287" rx="16" ry="17" fill="#4c1d95"/>
+  <ellipse cx="312" cy="288" rx="9" ry="10" fill="#1e1b4b"/>
+  <ellipse cx="306" cy="281" rx="5.5" ry="5.5" fill="white" opacity=".95"/>
+  <ellipse cx="317" cy="292" rx="2.5" ry="2.5" fill="white" opacity=".55"/>
+  <ellipse cx="372" cy="286" rx="28" ry="30" fill="#2e1065" opacity=".4" filter="url(#spblf)"/>
+  <ellipse cx="372" cy="284" rx="24" ry="26" fill="white"/>
+  <ellipse cx="374" cy="287" rx="16" ry="17" fill="#4c1d95"/>
+  <ellipse cx="376" cy="288" rx="9" ry="10" fill="#1e1b4b"/>
+  <ellipse cx="370" cy="281" rx="5.5" ry="5.5" fill="white" opacity=".95"/>
+  <ellipse cx="381" cy="292" rx="2.5" ry="2.5" fill="white" opacity=".55"/>
+  <path d="M290 260 Q308 250 326 258" stroke="#3b0764" stroke-width="5" fill="none" stroke-linecap="round"/>
+  <path d="M354 258 Q372 250 390 260" stroke="#3b0764" stroke-width="5" fill="none" stroke-linecap="round"/>
+  <ellipse cx="278" cy="316" rx="28" ry="18" fill="#fda4af" opacity=".7" filter="url(#spblf)"/>
+  <ellipse cx="402" cy="316" rx="28" ry="18" fill="#fda4af" opacity=".7" filter="url(#spblf)"/>
+  <path d="M308 332 Q340 364 372 332" stroke="#4c1d95" stroke-width="5.5" fill="none" stroke-linecap="round"/>
+  <ellipse cx="340" cy="354" rx="13" ry="9" fill="#fb7185"/>
+  <path d="M340 303 L355 310 L355 325 Q355 336 340 341 Q325 336 325 325 L325 310 Z" fill="url(#spshK)"/>
+  <path d="M332 324 L337 330 L349 317" stroke="white" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <g><animateTransform attributeName="transform" type="translate" values="185,215;173,195;185,215" dur="2.6s" repeatCount="indefinite" calcMode="spline" keySplines=".45 .05 .55 .95;.45 .05 .55 .95"/>
+  <path d="M0,5 C0,0 -7,0 -7,-5 C-7,-10 0,-10 0,-5 C0,-10 7,-10 7,-5 C7,0 0,0 0,5Z" fill="url(#sphK)" transform="translate(185,215) scale(1.1)"/></g>
+  <g><animateTransform attributeName="transform" type="translate" values="490,215;503,195;490,215" dur="3.1s" repeatCount="indefinite" calcMode="spline" keySplines=".45 .05 .55 .95;.45 .05 .55 .95"/>
+  <path d="M0,5 C0,0 -7,0 -7,-5 C-7,-10 0,-10 0,-5 C0,-10 7,-10 7,-5 C7,0 0,0 0,5Z" fill="url(#sphK)" transform="translate(490,215) scale(.9)"/></g>
+  <circle cx="340" cy="320" r="115" fill="none" stroke="#c4b5fd" stroke-width="2" opacity="0">
+    <animate attributeName="r" values="112;158;158" dur="2.8s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values=".4;0;0" dur="2.8s" repeatCount="indefinite"/>
+  </circle>
+  </svg>
+  </div>
+
+  <!-- Yoti — the real star -->
+  <div style="font-size:44px;font-weight:900;color:#fff;letter-spacing:-1px;margin-bottom:4px;">
+    Yoti
+  </div>
+  <div style="font-size:12px;font-weight:800;color:#A78BFA;letter-spacing:3px;text-transform:uppercase;margin-bottom:18px;">
+    Tu amigo guardián
+  </div>
+
+  <!-- What Yoti does — child friendly language -->
+  <div style="
+    font-size:15px;color:rgba(220,210,255,.9);
+    line-height:1.65;max-width:290px;
+    font-family:'Nunito Sans',sans-serif;font-weight:600;
+    margin-bottom:8px;
+  ">
+    Si alguien te hace daño en el cole o en el insti, cuéntaselo a Yoti. Él avisa a alguien de confianza para que te ayude — sin que el acosador se entere.
+  </div>
+
+  <div style="
+    font-size:11px;margin-bottom:22px;
+    font-family:'Nunito Sans',sans-serif;
+    text-align:center;line-height:1.6;
+  ">
+    <div style="color:rgba(167,139,250,.55);margin-bottom:2px;">Concepto, Diseño y Desarrollo</div>
+    <div style="color:rgba(196,181,253,.85);font-weight:700;font-size:12px;">Luz C. Wong Naranjo</div>
+  </div>
+
+  <!-- Buttons -->
+  <div style="display:flex;flex-direction:column;gap:12px;width:100%;max-width:300px;">
+    <button onclick="enterDemo()" style="
+      background:linear-gradient(135deg,#6C4FD4,#C026D3);
+      border:none;border-radius:28px;padding:16px 32px;
+      font-family:'Nunito',sans-serif;font-size:16px;font-weight:900;
+      color:#fff;cursor:pointer;
+      box-shadow:0 4px 20px rgba(108,79,212,.4);
+      transition:transform .15s,box-shadow .15s;
+      letter-spacing:.3px;
+    " onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 28px rgba(108,79,212,.5)'"
+       onmouseout="this.style.transform='none';this.style.boxShadow='0 4px 20px rgba(108,79,212,.4)'">
+      Conoce a Yoti →
+    </button>
+
+    <button onclick="enterDashboard()" style="
+      background:rgba(255,255,255,.06);
+      border:1.5px solid rgba(167,139,250,.3);
+      border-radius:28px;padding:14px 32px;
+      font-family:'Nunito',sans-serif;font-size:14px;font-weight:800;
+      color:rgba(200,185,255,.85);cursor:pointer;
+      transition:all .15s;
+    " onmouseover="this.style.background='rgba(108,79,212,.25)';this.style.color='#fff'"
+       onmouseout="this.style.background='rgba(255,255,255,.06)';this.style.color='rgba(200,185,255,.85)'">
+      Dashboard del colegio
+    </button>
+  </div>
+
+
+</div>
+
+<!-- EXPLAINER SCREEN -->
+<div id="explainer-screen" style="
+  position:fixed;inset:0;z-index:29;
+  background:linear-gradient(160deg,#0F0A2A 0%,#1A1040 55%,#0D0820 100%);
+  display:none;flex-direction:column;align-items:center;justify-content:flex-start;
+  padding:14px 24px 16px;text-align:center;font-family:'Nunito',sans-serif;
+  overflow-y:auto;
+">
+  <!-- Back to home -->
+  <div style="width:100%;max-width:300px;display:flex;justify-content:flex-start;margin-bottom:8px;">
+    <button onclick="goHome()" style="
+      background:rgba(108,79,212,.15);
+      border:1px solid rgba(167,139,250,.25);
+      border-radius:20px;padding:6px 14px;
+      font-family:'Nunito',sans-serif;font-size:12px;font-weight:800;
+      color:rgba(196,181,253,.85);cursor:pointer;
+    ">← Inicio</button>
+  </div>
+
+  <!-- Secret badge -->
+  <div style="
+    background:rgba(192,38,211,.15);border:1px solid rgba(192,38,211,.35);
+    border-radius:20px;padding:6px 18px;font-size:11px;font-weight:800;
+    color:#E879F9;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;
+  ">Modo camuflaje activado</div>
+
+  <!-- Icon -->
+  <div style="font-size:36px;margin-bottom:8px;">🔒</div>
+
+  <!-- Title -->
+  <div style="font-size:19px;font-weight:900;color:#fff;margin-bottom:8px;line-height:1.2;">
+    Yoti se camufla<br>como una calculadora
+  </div>
+
+  <!-- Description -->
+  <div style="font-size:12px;color:rgba(200,185,255,.85);line-height:1.55;max-width:320px;font-family:'Nunito Sans',sans-serif;font-weight:600;margin-bottom:14px;">
+    Si alguien coge tu móvil, solo ve una calculadora normal. Pero tú tienes un código secreto para hablar con Yoti en privado.
+  </div>
+
+  <!-- Steps -->
+  <div style="display:flex;flex-direction:column;gap:6px;width:100%;max-width:300px;margin-bottom:14px;">
+    <div style="
+      display:flex;align-items:center;gap:14px;
+      background:rgba(108,79,212,.15);border:1px solid rgba(108,79,212,.25);
+      border-radius:14px;padding:10px 14px;text-align:left;
+    ">
+      <div style="font-size:18px;flex-shrink:0;">🔢</div>
+      <div>
+        <div style="font-size:13px;font-weight:800;color:#C4B5FD;">Paso 1</div>
+        <div style="font-size:12px;color:rgba(200,185,255,.75);font-family:'Nunito Sans',sans-serif;">Escribe el código secreto <strong style="color:#A78BFA;">1 · 2 · 3</strong></div>
+      </div>
+    </div>
+    <div style="
+      display:flex;align-items:center;gap:14px;
+      background:rgba(108,79,212,.15);border:1px solid rgba(108,79,212,.25);
+      border-radius:14px;padding:10px 14px;text-align:left;
+    ">
+      <div style="font-size:18px;flex-shrink:0;">🟰</div>
+      <div>
+        <div style="font-size:13px;font-weight:800;color:#C4B5FD;">Paso 2</div>
+        <div style="font-size:12px;color:rgba(200,185,255,.75);font-family:'Nunito Sans',sans-serif;">Pulsa <strong style="color:#A78BFA;">=</strong> para confirmar</div>
+      </div>
+    </div>
+    <div style="
+      display:flex;align-items:center;gap:14px;
+      background:rgba(192,38,211,.12);border:1px solid rgba(192,38,211,.25);
+      border-radius:14px;padding:10px 14px;text-align:left;
+    ">
+      <div style="font-size:18px;flex-shrink:0;">💜</div>
+      <div>
+        <div style="font-size:13px;font-weight:800;color:#E879F9;">Paso 3</div>
+        <div style="font-size:12px;color:rgba(200,185,255,.75);font-family:'Nunito Sans',sans-serif;">¡Yoti aparece listo para escucharte!</div>
+      </div>
+    </div>
+  </div>
+
+
+
+  <!-- CTA button -->
+  <button onclick="skipExplainer()" style="
+    background:linear-gradient(135deg,#6C4FD4,#C026D3);
+    border:none;border-radius:28px;padding:12px 32px;
+    font-family:'Nunito',sans-serif;font-size:14px;font-weight:900;
+    color:#fff;cursor:pointer;
+    box-shadow:0 4px 20px rgba(108,79,212,.4);
+    letter-spacing:.3px;
+  ">¡Entendido! Probar ahora →</button>
+
+
+</div>
+
+<!-- TRANSITION OVERLAY -->
+<div id="transition"></div>
+
+<!-- CALCULATOR -->
+<div id="calc-screen">
+  <div style="
+    display:flex;align-items:center;justify-content:flex-start;
+    width:min(300px,92vw);margin-bottom:10px;
+  ">
+    <button onclick="goHome()" style="
+      background:rgba(108,79,212,.15);
+      border:1px solid rgba(167,139,250,.25);
+      border-radius:20px;padding:6px 14px;
+      font-family:'Nunito',sans-serif;font-size:12px;font-weight:800;
+      color:rgba(196,181,253,.85);cursor:pointer;
+      display:flex;align-items:center;gap:6px;
+    ">← Inicio</button>
+  </div>
+  <div class="calc-wrap">
+    <div class="calc-display">
+      <div class="calc-label">Calculadora</div>
+      <div class="calc-num" id="calc-display">0</div>
+    </div>
+    <div class="calc-grid">
+      <button class="calc-btn fn" onclick="calcFn('AC')">AC</button>
+      <button class="calc-btn fn" onclick="calcFn('+/-')">+/-</button>
+      <button class="calc-btn fn" onclick="calcFn('%')">%</button>
+      <button class="calc-btn op" onclick="calcOp('÷')">÷</button>
+      <button class="calc-btn" onclick="calcNum('7')">7</button>
+      <button class="calc-btn" onclick="calcNum('8')">8</button>
+      <button class="calc-btn" onclick="calcNum('9')">9</button>
+      <button class="calc-btn op" onclick="calcOp('×')">×</button>
+      <button class="calc-btn" onclick="calcNum('4')">4</button>
+      <button class="calc-btn" onclick="calcNum('5')">5</button>
+      <button class="calc-btn" onclick="calcNum('6')">6</button>
+      <button class="calc-btn op" onclick="calcOp('-')">−</button>
+      <button class="calc-btn" onclick="calcNum('1')">1</button>
+      <button class="calc-btn" onclick="calcNum('2')">2</button>
+      <button class="calc-btn" onclick="calcNum('3')">3</button>
+      <button class="calc-btn op" onclick="calcOp('+')">+</button>
+      <button class="calc-btn zero" onclick="calcNum('0')">0</button>
+      <button class="calc-btn" onclick="calcFn('.')">.</button>
+      <button class="calc-btn op eq" onclick="calcEq()">=</button>
+    </div>
+    <div class="calc-hint" style="
+  color:rgba(167,139,250,.7);font-size:12px;font-weight:700;
+  margin-top:14px;padding:10px 14px;
+  background:rgba(108,79,212,.12);
+  border:1px solid rgba(167,139,250,.2);
+  border-radius:12px;letter-spacing:.3px;
+">🔒 Código secreto: escribe <span style="color:#A78BFA;font-weight:900;">1 · 2 · 3</span> y pulsa <span style="color:#A78BFA;font-weight:900;">=</span></div>
+
+  </div>
+</div>
+
+<!-- APP SCREEN -->
+<div id="app-screen">
+  <div class="topbar">
+    <div class="tb-logo" id="tb-logo">YoTeCreo</div>
+    <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end;">
+      <div class="tb-profile kids" id="tb-profile" style="display:none;"></div>
+      <button class="tb-back" onclick="goBack()">← Calc</button>
+      <button class="tb-back" onclick="goHome()" style="background:rgba(192,38,211,.25);border-color:rgba(232,121,249,.4);color:#E879F9;">⌂</button>
+    </div>
+  </div>
+
+  <div class="avatar-area" id="avatar-area">
+    <!-- Avatar se inyecta por JS -->
+  </div>
+
+  <div class="chat-area" id="chat-area"></div>
+
+  <div class="input-area">
+    <div class="input-wrap" id="input-wrap">
+      <input class="chat-input" id="chat-input" placeholder="Escríbeme aquí..." autocomplete="off" onkeydown="if(event.key==='Enter')sendMsg()"/>
+    </div>
+    <button class="send-btn" id="send-btn" onclick="sendMsg()">→</button>
+  </div>
+
+  <div class="quick-wrap" id="quick-wrap"></div>
+  <div class="app-footer">YoTeCreo © 2026 · Luz C. Wong Naranjo</div>
+</div>
+
+<script>
+// ── STARS ──
+var starsEl=document.getElementById('stars');
+for(var i=0;i<18;i++){
+  var s=document.createElement('div');s.className='star';
+  var sz=Math.random()*3+1.5;
+  s.style.cssText='width:'+sz+'px;height:'+sz+'px;top:'+Math.random()*100+'%;left:'+Math.random()*100+'%;animation-delay:'+Math.random()*5+'s;animation-duration:'+(2+Math.random()*3)+'s;';
+  starsEl.appendChild(s);
+}
+
+// ── CALCULATOR ──
+var calcVal='';var calcOper='';var calcNew=true;var codeReady=false;
+
+function calcNum(n){
+  if(calcNew){calcVal=n;calcNew=false;}
+  else calcVal=(calcVal==='0'?n:calcVal+n);
+  codeReady=false;
+  updateDisp();
+}
+function calcOp(op){calcOper=op;calcNew=true;updateDisp();}
+function calcFn(f){
+  if(f==='AC'){calcVal='0';calcOper='';calcNew=true;codeReady=false;}
+  updateDisp();
+}
+function calcEq(){
+  if(calcVal==='123'){
+    codeReady=true;
+    updateDisp();
+    setTimeout(activateYoti, 900);
+    return;
+  }
+  calcNew=true;
+  updateDisp();
+}
+function updateDisp(){
+  var d=document.getElementById('calc-display');
+  var eqBtn=document.querySelector('.calc-btn.eq');
+  if(calcVal==='123' && codeReady){
+    d.className='calc-num calc-code';
+    d.textContent='Yoti...';
+    if(eqBtn) eqBtn.classList.remove('hint');
+  } else if(calcVal==='123'){
+    d.className='calc-num calc-code';
+    d.textContent='123';
+    // Pulse the = button to guide the child
+    if(eqBtn) eqBtn.classList.add('hint');
+  } else {
+    d.className='calc-num';
+    d.textContent=calcVal||'0';
+    // Remove hint if user types something else
+    if(eqBtn) eqBtn.classList.remove('hint');
+  }
+}
+
+// ── AVATARS ──
+var YOTI_KIDS_SVG=`<svg class="yoti-kids" width="88" height="74" viewBox="140 175 400 310" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <radialGradient id="bK2" cx="38%" cy="28%" r="65%"><stop offset="0%" stop-color="#c4b5fd"/><stop offset="35%" stop-color="#8b5cf6"/><stop offset="70%" stop-color="#6d28d9"/><stop offset="100%" stop-color="#3b0764"/></radialGradient>
+  <radialGradient id="blK2" cx="50%" cy="40%" r="55%"><stop offset="0%" stop-color="#faf5ff"/><stop offset="100%" stop-color="#ddd6fe"/></radialGradient>
+  <radialGradient id="ckK2" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#f9a8d4" stop-opacity=".9"/><stop offset="100%" stop-color="#f9a8d4" stop-opacity="0"/></radialGradient>
+  <radialGradient id="hK2" cx="50%" cy="30%" r="60%"><stop offset="0%" stop-color="#fb7185"/><stop offset="100%" stop-color="#e11d48"/></radialGradient>
+  <radialGradient id="shK2" cx="40%" cy="25%" r="65%"><stop offset="0%" stop-color="#fde68a"/><stop offset="55%" stop-color="#f59e0b"/><stop offset="100%" stop-color="#b45309"/></radialGradient>
+  <filter id="blfK2"><feGaussianBlur stdDeviation="3"/></filter>
+</defs>
+<ellipse cx="340" cy="330" rx="112" ry="109" fill="url(#bK2)"/>
+<ellipse cx="350" cy="338" rx="95" ry="92" fill="#3b0764" opacity=".25"/>
+<ellipse cx="340" cy="352" rx="68" ry="64" fill="url(#blK2)"/>
+<ellipse cx="228" cy="244" rx="28" ry="36" fill="#6d28d9" transform="rotate(-18,228,244)"/>
+<ellipse cx="228" cy="248" rx="13" ry="22" fill="#f9a8d4" opacity=".8" transform="rotate(-18,228,244)"/>
+<ellipse cx="452" cy="244" rx="28" ry="36" fill="#6d28d9" transform="rotate(18,452,244)"/>
+<ellipse cx="452" cy="248" rx="13" ry="22" fill="#f9a8d4" opacity=".8" transform="rotate(18,452,248)"/>
+<ellipse cx="308" cy="286" rx="28" ry="30" fill="#2e1065" opacity=".4" filter="url(#blfK2)"/>
+<ellipse cx="308" cy="284" rx="24" ry="26" fill="white"/>
+<ellipse cx="310" cy="287" rx="16" ry="17" fill="#4c1d95"/>
+<ellipse cx="312" cy="288" rx="9" ry="10" fill="#1e1b4b"/>
+<ellipse cx="306" cy="281" rx="5.5" ry="5.5" fill="white" opacity=".95"/>
+<ellipse cx="317" cy="292" rx="2.5" ry="2.5" fill="white" opacity=".55"/>
+<ellipse cx="372" cy="286" rx="28" ry="30" fill="#2e1065" opacity=".4" filter="url(#blfK2)"/>
+<ellipse cx="372" cy="284" rx="24" ry="26" fill="white"/>
+<ellipse cx="374" cy="287" rx="16" ry="17" fill="#4c1d95"/>
+<ellipse cx="376" cy="288" rx="9" ry="10" fill="#1e1b4b"/>
+<ellipse cx="370" cy="281" rx="5.5" ry="5.5" fill="white" opacity=".95"/>
+<ellipse cx="381" cy="292" rx="2.5" ry="2.5" fill="white" opacity=".55"/>
+<path d="M290 260 Q308 250 326 258" stroke="#3b0764" stroke-width="5" fill="none" stroke-linecap="round"/>
+<path d="M354 258 Q372 250 390 260" stroke="#3b0764" stroke-width="5" fill="none" stroke-linecap="round"/>
+<ellipse cx="278" cy="316" rx="28" ry="18" fill="#fda4af" opacity=".7" filter="url(#blfK2)"/>
+<ellipse cx="402" cy="316" rx="28" ry="18" fill="#fda4af" opacity=".7" filter="url(#blfK2)"/>
+<path d="M308 332 Q340 364 372 332" stroke="#4c1d95" stroke-width="5.5" fill="none" stroke-linecap="round"/>
+<ellipse cx="340" cy="354" rx="13" ry="9" fill="#fb7185"/>
+<path d="M340 303 L355 310 L355 325 Q355 336 340 341 Q325 336 325 325 L325 310 Z" fill="url(#shK2)"/>
+<path d="M332 324 L337 330 L349 317" stroke="white" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<g><animateTransform attributeName="transform" type="translate" values="185,215;173,195;185,215" dur="2.6s" repeatCount="indefinite" calcMode="spline" keySplines=".45 .05 .55 .95;.45 .05 .55 .95"/>
+<path d="M0,5 C0,0 -7,0 -7,-5 C-7,-10 0,-10 0,-5 C0,-10 7,-10 7,-5 C7,0 0,0 0,5Z" fill="url(#hK2)" transform="translate(185,215) scale(1.1)"/></g>
+<g><animateTransform attributeName="transform" type="translate" values="490,215;503,195;490,215" dur="3.1s" repeatCount="indefinite" calcMode="spline" keySplines=".45 .05 .55 .95;.45 .05 .55 .95"/>
+<path d="M0,5 C0,0 -7,0 -7,-5 C-7,-10 0,-10 0,-5 C0,-10 7,-10 7,-5 C7,0 0,0 0,5Z" fill="url(#hK2)" transform="translate(490,215) scale(.9)"/></g>
+<circle cx="340" cy="320" r="115" fill="none" stroke="#c4b5fd" stroke-width="2" opacity="0"><animate attributeName="r" values="112;158;158" dur="2.8s" repeatCount="indefinite"/><animate attributeName="opacity" values=".4;0;0" dur="2.8s" repeatCount="indefinite"/></circle>
+</svg>`;
+
+var YOTI_TEEN_SVG=`<svg class="yoti-teen" width="90" height="98" viewBox="140 100 400 430" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <radialGradient id="hMT" cx="38%" cy="28%" r="65%"><stop offset="0%" stop-color="#e2e8f0"/><stop offset="30%" stop-color="#94a3b8"/><stop offset="65%" stop-color="#475569"/><stop offset="100%" stop-color="#1e293b"/></radialGradient>
+  <radialGradient id="fsT" cx="45%" cy="35%" r="60%"><stop offset="0%" stop-color="#1e293b"/><stop offset="100%" stop-color="#020617"/></radialGradient>
+  <radialGradient id="bAT" cx="40%" cy="25%" r="65%"><stop offset="0%" stop-color="#cbd5e1"/><stop offset="50%" stop-color="#3d4f63"/><stop offset="100%" stop-color="#1a2535"/></radialGradient>
+  <radialGradient id="rcT" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#67e8f9"/><stop offset="50%" stop-color="#06b6d4"/><stop offset="100%" stop-color="#0e7490"/></radialGradient>
+  <radialGradient id="eaT" cx="40%" cy="35%" r="58%"><stop offset="0%" stop-color="#94a3b8"/><stop offset="100%" stop-color="#1e293b"/></radialGradient>
+  <radialGradient id="hmT" cx="38%" cy="30%" r="60%"><stop offset="0%" stop-color="#e2e8f0"/><stop offset="45%" stop-color="#7f8ea3"/><stop offset="100%" stop-color="#1e293b"/></radialGradient>
+  <filter id="cgT"><feGaussianBlur stdDeviation="4" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  <filter id="tbT"><feGaussianBlur stdDeviation="1.5"/></filter>
+  <clipPath id="scT"><ellipse cx="340" cy="270" rx="85" ry="75"/></clipPath>
+</defs>
+<rect x="268" y="370" width="144" height="130" rx="28" fill="url(#bAT)"/>
+<line x1="340" y1="378" x2="340" y2="492" stroke="#1e293b" stroke-width="2" opacity=".5"/>
+<circle cx="340" cy="430" r="22" fill="#0f172a"/>
+<circle cx="340" cy="430" r="14" fill="url(#rcT)" filter="url(#cgT)"><animate attributeName="r" values="14;17;14" dur="2s" repeatCount="indefinite"/></circle>
+<circle cx="340" cy="430" r="22" fill="none" stroke="#67e8f9" stroke-width="1.5" opacity=".5"/>
+<ellipse cx="242" cy="385" rx="40" ry="35" fill="url(#bAT)"/>
+<ellipse cx="438" cy="385" rx="40" ry="35" fill="url(#bAT)"/>
+<rect x="290" y="458" width="100" height="7" rx="3" fill="#67e8f9" opacity=".2"/>
+<rect x="290" y="458" width="50" height="7" rx="3" fill="#67e8f9" opacity=".45"><animate attributeName="width" values="0;100;0" dur="3s" repeatCount="indefinite"/></rect>
+<rect x="322" y="354" width="36" height="20" rx="4" fill="#334155"/>
+<ellipse cx="352" cy="268" rx="100" ry="96" fill="#0a1628" opacity=".4" filter="url(#tbT)"/>
+<ellipse cx="340" cy="258" rx="108" ry="100" fill="url(#hMT)"/>
+<ellipse cx="340" cy="185" rx="78" ry="28" fill="#cbd5e1" opacity=".7"/>
+<path d="M268 232 Q290 195 340 186 Q390 195 412 232" stroke="#334155" stroke-width="2" fill="none" opacity=".6"/>
+<line x1="340" y1="164" x2="340" y2="350" stroke="#334155" stroke-width="1.5" opacity=".3"/>
+<circle cx="234" cy="258" r="26" fill="#1e293b"/><circle cx="234" cy="258" r="22" fill="url(#eaT)"/><circle cx="234" cy="258" r="14" fill="#0f172a"/><circle cx="234" cy="258" r="7" fill="#06b6d4" opacity=".9" filter="url(#cgT)"><animate attributeName="opacity" values=".9;1;.9" dur="1.8s" repeatCount="indefinite"/></circle>
+<circle cx="446" cy="258" r="26" fill="#1e293b"/><circle cx="446" cy="258" r="22" fill="url(#eaT)"/><circle cx="446" cy="258" r="14" fill="#0f172a"/><circle cx="446" cy="258" r="7" fill="#06b6d4" opacity=".9" filter="url(#cgT)"><animate attributeName="opacity" values=".9;1;.9" dur="1.8s" repeatCount="indefinite" begin=".4s"/></circle>
+<line x1="296" y1="166" x2="276" y2="122" stroke="#64748b" stroke-width="4" stroke-linecap="round"/>
+<circle cx="276" cy="116" r="7" fill="#0f172a"/><circle cx="276" cy="116" r="5" fill="url(#rcT)" filter="url(#cgT)"><animate attributeName="opacity" values=".7;1;.7" dur="1.5s" repeatCount="indefinite"/></circle>
+<line x1="384" y1="166" x2="404" y2="122" stroke="#64748b" stroke-width="4" stroke-linecap="round"/>
+<circle cx="404" cy="116" r="7" fill="#0f172a"/><circle cx="404" cy="116" r="5" fill="url(#rcT)" filter="url(#cgT)"><animate attributeName="opacity" values=".7;1;.7" dur="1.5s" repeatCount="indefinite" begin=".5s"/></circle>
+<ellipse cx="340" cy="262" rx="88" ry="78" fill="url(#fsT)"/>
+<ellipse cx="340" cy="262" rx="88" ry="78" fill="none" stroke="#334155" stroke-width="3" opacity=".8"/>
+<g clip-path="url(#scT)"><rect x="255" y="222" width="170" height="3" fill="#67e8f9" opacity=".15"><animateTransform attributeName="transform" type="translate" values="0,-50;0,90" dur="2.5s" repeatCount="indefinite"/></rect></g>
+<path d="M287 248 Q307 231 327 248" stroke="#67e8f9" stroke-width="8" fill="none" stroke-linecap="round" filter="url(#cgT)" opacity=".9"/>
+<path d="M287 248 Q307 231 327 248" stroke="#e0f9ff" stroke-width="3" fill="none" stroke-linecap="round" opacity=".8"/>
+<path d="M353 248 Q373 231 393 248" stroke="#67e8f9" stroke-width="8" fill="none" stroke-linecap="round" filter="url(#cgT)" opacity=".9"/>
+<path d="M353 248 Q373 231 393 248" stroke="#e0f9ff" stroke-width="3" fill="none" stroke-linecap="round" opacity=".8"/>
+<path d="M298 292 Q340 322 382 292" stroke="#67e8f9" stroke-width="7" fill="none" stroke-linecap="round" filter="url(#cgT)"/>
+<path d="M298 292 Q340 322 382 292" stroke="#e0f9ff" stroke-width="2.5" fill="none" stroke-linecap="round" opacity=".85"/>
+<circle cx="340" cy="262" r="125" fill="none" stroke="#67e8f9" stroke-width="1.5" stroke-dasharray="5 9" opacity="0"><animate attributeName="r" values="115;162;162" dur="3s" repeatCount="indefinite"/><animate attributeName="opacity" values=".4;0;0" dur="3s" repeatCount="indefinite"/></circle>
+</svg>`;
+
+// ── STATE ──
+var profile=null; // 'kids' or 'teen'
+var gender=null;  // 'nino','nina','chico','chica'
+var step='age';   // onboarding step
+var isTeen=false;
+
+// ── ONBOARDING SCRIPTS ──
+var scriptAge=[
+  {from:'yoti', text:'¡Hola! Soy Yoti, tu amigo guardián 💜 Antes de empezar, ¿cuántos años tienes?'},
+];
+var ageQuick=['8','9','10','11','12','13','14','15','16','17'];
+
+function getGenderQ(age){
+  var n=parseInt(age);
+  if(n<=13) return '¿Eres niño o niña?';
+  return '¿Eres chico o chica?';
+}
+function getGenderQuick(age){
+  var n=parseInt(age);
+  if(n<=13) return ['Niño','Niña'];
+  return ['Chico','Chica'];
+}
+
+// ── WELCOME MESSAGES BY PROFILE ──
+var welcomeKidsNino=[
+  '¡Genial! Ahora soy <b>tu</b> Yoti 💜',
+  'Soy tu amigo secreto. Nadie más puede ver lo que me cuentes aquí.',
+  '¿Hay algo que quieras contarme hoy?'
+];
+var welcomeKidsNina=[
+  '¡Perfecto! Ahora soy <b>tu</b> Yoti 💜',
+  'Soy tu amiga secreta. Todo lo que me cuentes es solo nuestro.',
+  '¿Cómo estás hoy? ¿Quieres contarme algo?'
+];
+var welcomeTeenChico=[
+  'Tío, aquí estoy. Soy Yoti, tu aliado.',
+  'Lo que me cuentes no sale de aquí. Nadie más lo ve.',
+  '¿Qué está pasando? Puedes contarme.'
+];
+var welcomeTeenChica=[
+  'Hola, aquí estoy. Soy Yoti, tu aliada.',
+  'Lo que me cuentes es solo tuyo. Total privacidad.',
+  '¿Quieres contarme qué está pasando?'
+];
+
+// ── ACTIVATE ──
+function activateYoti(){
+  document.getElementById('calc-screen').style.display='none';
+  var app=document.getElementById('app-screen');
+  app.classList.add('visible');
+  showAvatar('neutral');
+  startOnboarding();
+}
+
+function showAvatar(mode){
+  var area=document.getElementById('avatar-area');
+  if(mode==='teen'){
+    area.innerHTML=YOTI_TEEN_SVG;
+  } else {
+    area.innerHTML=YOTI_KIDS_SVG;
+  }
+}
+
+function startOnboarding(){
+  step='age';
+  clearChat();
+  setTimeout(function(){
+    addMsg('yoti', scriptAge[0].text);
+    setTimeout(function(){
+      showQuick(ageQuick, function(age){handleAge(age);});
+    },400);
+  },400);
+}
+
+function handleAge(age){
+  var n=parseInt(age);
+  addMsg('user',age);
+  clearQuick();
+  isTeen=(n>=14);
+  step='gender';
+  showTyping(function(){
+    addMsg('yoti', getGenderQ(age));
+    showQuick(getGenderQuick(age), function(g){handleGender(g,n);});
+  });
+}
+
+function handleGender(g, age){
+  addMsg('user',g);
+  clearQuick();
+  gender=g.toLowerCase();
+  profile=isTeen?'teen':'kids';
+  showTyping(function(){
+    loadProfile();
+  });
+}
+
+function loadProfile(){
+  var overlay=document.getElementById('transition');
+  overlay.style.opacity='1';
+  if(isTeen) overlay.classList.add('teen-transition');
+  else overlay.classList.remove('teen-transition');
+  overlay.style.pointerEvents='all';
+
+  setTimeout(function(){
+    applyProfile();
+    overlay.style.opacity='0';
+    overlay.style.pointerEvents='none';
+    runWelcome();
+  },500);
+}
+
+function applyProfile(){
+  var body=document.body;
+  var tbLogo=document.getElementById('tb-logo');
+  var tbProf=document.getElementById('tb-profile');
+  var inputWrap=document.getElementById('input-wrap');
+  var sendBtn=document.getElementById('send-btn');
+  var chatInput=document.getElementById('chat-input');
+
+  if(isTeen){
+    body.classList.add('teen');
+    showAvatar('teen');
+    tbLogo.className='tb-logo teen';
+    tbProf.className='tb-profile teen';
+    inputWrap.className='input-wrap teen';
+    sendBtn.className='send-btn teen';
+  } else {
+    body.classList.remove('teen');
+    showAvatar('neutral');
+    tbLogo.className='tb-logo';
+    tbProf.className='tb-profile kids';
+    inputWrap.className='input-wrap';
+    sendBtn.className='send-btn';
+  }
+
+  // Set profile label
+  var labels={'nino':'Perfil A · Niño','nina':'Perfil B · Niña','chico':'Perfil C · Chico','chica':'Perfil D · Chica'};
+  tbProf.textContent=labels[gender]||'';
+  tbProf.style.display='block';
+}
+
+function runWelcome(){
+  clearChat();
+  var msgs=getWelcomeMsgs();
+  var delay=300;
+  msgs.forEach(function(m,i){
+    setTimeout(function(){
+      showTypingThen(m, i<msgs.length-1?null:function(){
+        if(isTeen) showTeenQuick();
+        else showKidsQuick();
+      });
+    }, delay);
+    delay+=900;
+  });
+}
+
+function getWelcomeMsgs(){
+  if(gender==='nino') return welcomeKidsNino;
+  if(gender==='nina') return welcomeKidsNina;
+  if(gender==='chico') return welcomeTeenChico;
+  return welcomeTeenChica;
+}
+
+// ── 5 CASOS DE DEMO ──────────────────────────────────────────
+// Cada caso: {keywords, line1, line2, quick2}
+var CASOS_KIDS_NINO = [
+  { keys:['empuj','pegan','pega','golpe','patada','patio','recreo','daño'],
+    l1:'Que te hagan eso está muy mal, y no es culpa tuya para nada 💜',
+    l2:'¿Pasa todos los días o solo algunos?' },
+  { keys:['dinero','paga','pasta','quitan','roban','amenaz','salida'],
+    l1:'Amenazarte para quitarte dinero está muy muy mal. Eso no es normal y no tienes que callarlo 💜',
+    l2:'¿Ya te han quitado dinero antes o es la primera vez?' },
+  { keys:['ignoran','solo','nadie','hablan','amigos','exclu'],
+    l1:'Que te dejen fuera así duele muchísimo. Lo que sientes es completamente real 💜',
+    l2:'¿Cuánto tiempo llevas así?' },
+  { keys:['miedo','aterr','asust','no quiero ir','cole'],
+    l1:'Que tengas miedo de ir al cole tiene sentido. Por eso estoy aquí 💜',
+    l2:'¿Qué es lo que más te da miedo cuando llegas?' },
+  { keys:['insultan','llaman','burlan','mote','idiota','tonto','gordo'],
+    l1:'Que te insulten así está muy mal. Las palabras también hacen daño 💜',
+    l2:'¿Es siempre la misma persona o son varios?' }
+];
+
+var CASOS_KIDS_NINA = [
+  { keys:['grupo','whatsapp','quitado','sacado','expulsado'],
+    l1:'Que te quiten del grupo sin explicación duele muchísimo. Lo que sientes es muy real 💜',
+    l2:'¿Sabes si pasó algo que lo desencadenó o fue de repente?' },
+  { keys:['hablan mal','cotillean','rumores','mentiras','dicen cosas'],
+    l1:'Que hablen mal de ti a tus espaldas es muy duro. Eso no está bien 💜',
+    l2:'¿Lo hacen solo en persona o también por el móvil?' },
+  { keys:['ignoran','no me hablan','sola','nadie','exclu','apart'],
+    l1:'Que tus amigas dejen de hablarte sin decirte por qué... eso duele un montón 💜',
+    l2:'¿Cuánto tiempo llevas así?' },
+  { keys:['foto','imagen','red','instagram','tiktok','suben'],
+    l1:'Subir cosas tuyas sin tu permiso está muy mal. Eso no deberían hacerlo 💜',
+    l2:'¿Sabes quién lo está haciendo?' },
+  { keys:['miedo','no quiero','cole','sola','asust'],
+    l1:'Es normal sentirse así cuando pasan estas cosas. Por eso estoy aquí 💜',
+    l2:'¿Qué es lo que más te preocupa ahora mismo?' }
+];
+
+var CASOS_TEEN_CHICO = [
+  { keys:['pegan','golpean','empujan','pelean','agreden','físic'],
+    l1:'Que te agredan físicamente es violencia. Eso hay que pararlo, no aguantarlo.',
+    l2:'¿Dónde suele pasar — en clase, en el patio, a la salida?' },
+  { keys:['gay','maric','rarito','friki','diferente','orientac','identidad'],
+    l1:'Usarlo como insulto para hacerte daño es acoso, sin importar nada más. No tendría que pasar.',
+    l2:'¿Es siempre el mismo grupo o viene de diferentes personas?' },
+  { keys:['whatsapp','instagram','red','foto','video','difunden','mandan'],
+    l1:'El acoso por redes es igual de real que el físico. Lo que sientes es completamente válido.',
+    l2:'¿Sabes quién o quiénes están detrás?' },
+  { keys:['dinero','paga','quitan','roban','amenaz','extorsion'],
+    l1:'Que te amenacen para quitarte dinero es extorsión. Eso es muy serio y tiene solución.',
+    l2:'¿Ya ha pasado antes o es la primera vez?' },
+  { keys:['insti','clase','no quiero','miedo','solo','nadie'],
+    l1:'Que no quieras ir al insti por esto tiene todo el sentido. Pero no tienes que enfrentarlo solo.',
+    l2:'¿Cuánto tiempo llevas así?' }
+];
+
+var CASOS_TEEN_CHICA = [
+  { keys:['foto','cuenta','falsa','instagram','suplant','imagen','difunden'],
+    l1:'Eso es suplantación de identidad y es muy serio. Tienes derecho a que lo paren.',
+    l2:'¿Sabes quién puede estar detrás o tienes alguna sospecha?' },
+  { keys:['controla','vigila','pareja','novio','novia','celoso','celos','revisa'],
+    l1:'Que alguien te controle así no es amor, es control. Y eso no está bien.',
+    l2:'¿Cuánto tiempo lleva pasando esto?' },
+  { keys:['grupo','quitado','exclu','apart','amigas','hablan','ignoran'],
+    l1:'La exclusión duele igual que los golpes. Lo que estás sintiendo es completamente real.',
+    l2:'¿Es un grupo entero o hay alguien que lo está organizando?' },
+  { keys:['whatsapp','mandan','mensajes','amenazas','insultos','acosan','redes'],
+    l1:'El ciberacoso es igual de real que el físico. No tienes que aguantarlo sola.',
+    l2:'¿Cuánto tiempo lleva pasando y sabes quién es?' },
+  { keys:['deepfake','montaje','foto falsa','video falso','imagen manipul'],
+    l1:'Crear imágenes falsas tuyas es un delito. Eso es muy serio y tiene solución legal.',
+    l2:'¿Lo ha visto mucha gente o está limitado a un grupo?' }
+];
+
+// openQuestion flag
+var openQuestion=false;
+
+function getCasos(){
+  if(gender==='nino') return CASOS_KIDS_NINO;
+  if(gender==='nina') return CASOS_KIDS_NINA;
+  if(gender==='chico') return CASOS_TEEN_CHICO;
+  return CASOS_TEEN_CHICA;
+}
+
+function matchCaso(text){
+  var t=text.toLowerCase();
+  var casos=getCasos();
+  for(var i=0;i<casos.length;i++){
+    for(var j=0;j<casos[i].keys.length;j++){
+      if(t.includes(casos[i].keys[j])) return casos[i];
+    }
+  }
+  return null;
+}
+
+function getFallback(){
+  return isTeen
+    ? {l1:'Gracias por contarme eso. Lo que me dices es importante.',
+       l2:'¿Quieres darme más detalles para poder ayudarte mejor?'}
+    : {l1:'Gracias por contármelo. Eso que sientes importa mucho 💜',
+       l2:'¿Quieres contarme algo más sobre lo que está pasando?'};
+}
+
+function showKidsQuick(){
+  openQuestion=false;
+  var options;
+  if(gender==='nina'){
+    options=['Me han quitado del grupo','Hablan mal de mí','Mis amigas ya no me hablan','Estoy bien hoy'];
+  } else {
+    options=['Me están haciendo daño','Me ignoran mis amigos','Tengo miedo de ir al cole','Estoy bien hoy'];
+  }
+  showQuick(options, function(opt){
+    addMsg('user',opt);
+    clearQuick();
+    var caso=matchCaso(opt)||getFallback();
+    showTyping(function(){
+      addMsg('yoti', caso.l1);
+      if(opt.toLowerCase().includes('bien')){
+        setTimeout(function(){ showKidsQuick2(); },400);
+      } else {
+        openQuestion=true;
+        setTimeout(function(){
+          showTyping(function(){
+            addMsg('yoti', caso.l2);
+            showQuick(['Prefiero no contarlo ahora'], function(){
+              openQuestion=false;
+              addMsg('user','Prefiero no contarlo ahora');
+              clearQuick();
+              showTyping(function(){
+                addMsg('yoti','Está bien. Aquí estaré cuando estés listo/a 💜');
+                setTimeout(showKidsQuick2, 500);
+              });
+            });
+          });
+        }, 500);
+      }
+    });
+  });
+}
+
+function showKidsQuick2(){
+  openQuestion=false;
+  var options=['Sí, hay más','¿Puedes avisar a alguien?','Gracias Yoti'];
+  showQuick(options, function(opt){
+    addMsg('user',opt);
+    clearQuick();
+    showTyping(function(){
+      if(opt.includes('avisar')){
+        addMsg('yoti','Claro que sí. En silencio, sin que nadie lo vea, puedo avisar a tu persona de confianza ahora mismo. ¿Quieres que lo haga? 💜');
+        setTimeout(function(){
+          showQuick(['Sí, avisa por favor','Espera, todavía no'], function(r){
+            addMsg('user',r);
+            clearQuick();
+            showTyping(function(){
+              if(r.includes('Sí')){
+                addMsg('yoti','Aviso enviado 💜 Tu persona de confianza ya lo sabe. No estás solo/a.');
+              } else {
+                addMsg('yoti','De acuerdo. Aquí estaré cuando quieras 💜');
+                setTimeout(showKidsQuick2, 400);
+              }
+            });
+          });
+        }, 400);
+      } else if(opt.includes('más')){
+        addMsg('yoti','Cuéntame. Aquí estoy, no me voy a ningún sitio 💜');
+        openQuestion=true;
+        showQuick(['Prefiero no contarlo ahora'], function(){
+          openQuestion=false;
+          addMsg('user','Prefiero no contarlo ahora');
+          clearQuick();
+          showTyping(function(){
+            addMsg('yoti','Vale. Sin prisa. Cuando quieras 💜');
+            setTimeout(showKidsQuick2, 400);
+          });
+        });
+      } else {
+        addMsg('yoti','Para eso estoy yo. Cuando lo necesites, 1·2·3 y aquí estaré. Cuídate mucho 💜');
+      }
+    });
+  });
+}
+
+function showTeenQuick(){
+  openQuestion=false;
+  var options;
+  if(gender==='chica'){
+    options=['Me acosan por redes o WhatsApp','Alguien me controla o me vigila','Hablan mal de mí o difunden fotos','Hoy estoy bien, solo probando'];
+  } else {
+    options=['Me están haciendo la vida imposible','Me acosan por WhatsApp / redes','Alguien me controla demasiado','Hoy estoy bien, solo probando'];
+  }
+  showQuick(options, function(opt){
+    addMsg('user',opt);
+    clearQuick();
+    var caso=matchCaso(opt)||getFallback();
+    showTyping(function(){
+      addMsg('yoti', caso.l1);
+      if(opt.toLowerCase().includes('bien')||opt.toLowerCase().includes('probando')){
+        setTimeout(function(){ showTeenQuick2(); }, 400);
+      } else {
+        openQuestion=true;
+        setTimeout(function(){
+          showTyping(function(){
+            addMsg('yoti', caso.l2);
+            showQuick(['Prefiero no seguir ahora'], function(){
+              openQuestion=false;
+              addMsg('user','Prefiero no seguir ahora');
+              clearQuick();
+              showTyping(function(){
+                addMsg('yoti','Ok, sin presión. Aquí sigo cuando quieras.');
+                setTimeout(showTeenQuick2, 500);
+              });
+            });
+          });
+        }, 500);
+      }
+    });
+  });
+}
+
+function showTeenQuick2(){
+  openQuestion=false;
+  var options=['Sí, hay más que contar','¿Puedes avisar sin que se enteren?','De momento es suficiente'];
+  showQuick(options, function(opt){
+    addMsg('user',opt);
+    clearQuick();
+    showTyping(function(){
+      if(opt.includes('avisar')){
+        addMsg('yoti','Sí. El aviso llega en silencio — tu persona de confianza recibe una notificación discreta. Nadie más se entera. ¿Lo hago?');
+        setTimeout(function(){
+          showQuick(['Sí, hazlo','Espera, aún no'], function(r){
+            addMsg('user',r);
+            clearQuick();
+            showTyping(function(){
+              if(r.includes('Sí')){
+                addMsg('yoti','Hecho. Aviso enviado de forma silenciosa. No estás solo/a en esto.');
+              } else {
+                addMsg('yoti','Ok. Cuando estés listo/a, aquí sigo.');
+                setTimeout(showTeenQuick2, 400);
+              }
+            });
+          });
+        }, 400);
+      } else if(opt.includes('más')){
+        addMsg('yoti','Cuéntame lo que quieras. Aquí no te juzga nadie.');
+        openQuestion=true;
+        showQuick(['Prefiero no seguir ahora'], function(){
+          openQuestion=false;
+          addMsg('user','Prefiero no seguir ahora');
+          clearQuick();
+          showTyping(function(){
+            addMsg('yoti','Perfecto. Sin prisa. Ya sabes dónde encontrarme.');
+            setTimeout(showTeenQuick2, 400);
+          });
+        });
+      } else {
+        addMsg('yoti','Ok. Cuando lo necesites: calculadora, 1·2·3, y aquí estoy. Sin preguntas raras.');
+      }
+    });
+  });
+}
+
+// ── CHAT HELPERS ──
+function clearChat(){document.getElementById('chat-area').innerHTML='';}
+function clearQuick(){document.getElementById('quick-wrap').innerHTML='';}
+
+function addMsg(from, text){
+  var area=document.getElementById('chat-area');
+  var d=document.createElement('div');
+  var cls='msg '+(from==='yoti'?'yoti'+(isTeen?' teen':''):'user'+(isTeen?' teen':''));
+  d.className=cls;
+  d.innerHTML=text;
+  area.appendChild(d);
+  scrollBottom();
+}
+function scrollBottom(){
+  var area=document.getElementById('chat-area');
+  area.scrollTop=area.scrollHeight;
+  // Double scroll after paint to catch dynamic height changes
+  requestAnimationFrame(function(){
+    area.scrollTop=area.scrollHeight;
+  });
+}
+
+function showTyping(cb){
+  var area=document.getElementById('chat-area');
+  var d=document.createElement('div');
+  d.className='typing'+(isTeen?' teen':'');
+  d.id='typing-ind';
+  d.innerHTML='<div class="dot-t'+(isTeen?' teen':'')+'"></div><div class="dot-t'+(isTeen?' teen':'')+'"></div><div class="dot-t'+(isTeen?' teen':'')+'"></div>';
+  area.appendChild(d);
+  scrollBottom();
+  setTimeout(function(){
+    var t=document.getElementById('typing-ind');
+    if(t) t.remove();
+    if(cb) cb();
+    scrollBottom();
+  },900);
+}
+
+function showTypingThen(text, cb){
+  showTyping(function(){
+    addMsg('yoti',text);
+    if(cb) cb();
+  });
+}
+
+function showQuick(options, cb, extraCls){
+  var wrap=document.getElementById('quick-wrap');
+  wrap.innerHTML='';
+  options.forEach(function(opt){
+    var btn=document.createElement('button');
+    btn.className='qbtn'+(extraCls?' '+extraCls:'');
+    btn.textContent=opt;
+    btn.onclick=function(){
+      wrap.innerHTML='';
+      cb(opt);
+    };
+    wrap.appendChild(btn);
+  });
+}
+
+function sendMsg(){
+  var input=document.getElementById('chat-input');
+  var text=input.value.trim();
+  if(!text) return;
+  input.value='';
+  addMsg('user',text);
+  clearQuick();
+  openQuestion=false;
+  showTyping(function(){
+    if(!profile){
+      var n=parseInt(text);
+      if(!isNaN(n)&&n>=8&&n<=17){
+        handleAge(text);
+      } else {
+        addMsg('yoti','Dime cuántos años tienes para poder ayudarte mejor 😊');
+        showQuick(ageQuick,function(a){handleAge(a);});
+      }
+    } else {
+      // Match against the 5 demo cases
+      var caso=matchCaso(text)||getFallback();
+      addMsg('yoti', caso.l1);
+      setTimeout(function(){
+        showTyping(function(){
+          addMsg('yoti', caso.l2);
+          setTimeout(function(){
+            if(isTeen) showTeenQuick2();
+            else showKidsQuick2();
+          },500);
+        });
+      },600);
+    }
+  });
+}
+
+function getEmpathicResponse(text){
+  var t=text.toLowerCase();
+
+  // Extract context already mentioned by the child
+  var numMatch=t.match(/(\d+)\s*(chico|chica|nio|nia|persona|compa|tio|tia|amigo|amiga)/);
+  var numPeople=numMatch?parseInt(numMatch[1]):null;
+  var mentions_group=(t.includes('varios')||t.includes('grupo')||t.includes('todos')||t.includes('banda')||numPeople>1);
+  var mentions_one=(t.includes('uno')||t.includes('una')||t.includes('siempre el mismo')||t.includes('siempre la misma')||(numPeople===1));
+  var mentions_older=(t.includes('mayor')||t.includes('curso superior')||t.includes('mas grande')||t.includes('más grande'));
+  var mentions_threat=(t.includes('van a')||t.includes('me va a')||t.includes('amenaz')||t.includes('salida')||t.includes('esperan'));
+  var mentions_money=(t.includes('dinero')||t.includes('paga')||t.includes('pasta')||t.includes('roban'));
+  var mentions_hit=(t.includes('pegar')||t.includes('golpe')||t.includes('empuj')||t.includes('patada'));
+  var mentions_cyber=(t.includes('whatsapp')||t.includes('instagram')||t.includes('foto')||t.includes('video')||t.includes('tiktok')||t.includes('red'));
+  var mentions_excl=(t.includes('ignoran')||t.includes('grupo')||t.includes('apart')||t.includes('hablan mal')||t.includes('nadie'));
+
+  // Build smart contextual response
+  var line1, line2;
+
+  if(mentions_money&&mentions_threat&&mentions_group){
+    var n=numPeople?numPeople+'':mentions_older?'chicos mayores':'un grupo';
+    line1=isTeen
+      ? 'Que '+n+' te amenacen para quitarte dinero es extorsión. Eso es muy serio y no tienes que callarlo.'
+      : 'Que '+n+' te amenacen así está muy mal. Tú no has hecho nada malo 💜';
+    line2=isTeen
+      ? '¿Ya ha pasado antes o es la primera vez que te amenazan?'
+      : '¿Esto ha pasado antes o es la primera vez que te lo dicen?';
+  } else if(mentions_money){
+    line1=isTeen
+      ? 'Quitarte dinero es intimidación. Eso tiene nombre y tiene solución.'
+      : 'Que te quiten cosas está muy mal. Eso no debe pasar 💜';
+    line2=isTeen
+      ? '¿Ya te han quitado dinero otras veces o es la primera?'
+      : '¿Ha pasado más veces o es la primera vez?';
+  } else if(mentions_hit&&mentions_group){
+    var n2=numPeople?numPeople+'':mentions_older?'chicos mayores':'varios';
+    line1=isTeen
+      ? 'Que '+n2+' te hagan daño físicamente es violencia en grupo. Esto hay que pararlo.'
+      : 'Que '+n2+' te empujen o peguen juntos está muy mal. No es tu culpa 💜';
+    line2=isTeen
+      ? '¿Dónde suele pasar — en clase, en el patio, a la salida?'
+      : '¿Dónde pasa esto? ¿En el cole o también fuera?';
+  } else if(mentions_hit){
+    line1=isTeen
+      ? 'Que te hagan daño físicamente es serio. No tienes que aguantarlo.'
+      : 'Que te empujen o peguen está muy mal. Eso no debe pasar 💜';
+    line2=isTeen
+      ? '¿Cuánto tiempo lleva pasando esto?'
+      : '¿Cuándo pasó la última vez?';
+  } else if(mentions_cyber){
+    line1=isTeen
+      ? 'El acoso por redes es igual de real que el físico. Lo que sientes es completamente válido.'
+      : 'Lo que pasa en el móvil también duele. Estoy aquí contigo 💜';
+    line2=isTeen
+      ? '¿Sabes quién o quiénes están detrás de los mensajes?'
+      : '¿Cuándo empezó esto?';
+  } else if(mentions_excl){
+    line1=isTeen
+      ? 'La exclusión duele igual que los golpes. Lo que sientes es real y tiene solución.'
+      : 'Que te ignoren o hablen mal de ti duele muchísimo. Pero no estás solo/a 💜';
+    line2=isTeen
+      ? '¿Son personas de tu clase o de fuera?'
+      : '¿Son tus amigos de siempre o gente nueva?';
+  } else if(t.includes('miedo')||t.includes('asust')){
+    line1=isTeen
+      ? 'Entiendo que tengas miedo. No tienes que enfrentarlo solo/a.'
+      : 'Que tengas miedo tiene sentido. Por eso estoy aquí 💜';
+    line2=isTeen
+      ? '¿Qué es lo que más te preocupa ahora mismo?'
+      : '¿Qué es lo que más te da miedo?';
+  } else {
+    line1=isTeen
+      ? 'Gracias por contarme eso. Lo que me dices es importante.'
+      : 'Gracias por contármelo. Eso que sientes importa mucho 💜';
+    line2=isTeen
+      ? '¿Quieres darme más detalles para poder ayudarte mejor?'
+      : '¿Quieres contarme algo más sobre lo que está pasando?';
+  }
+  return [line1, line2];
+}
+
+function goBack(){
+  document.getElementById('app-screen').classList.remove('visible');
+  document.getElementById('calc-screen').style.display='flex';
+  document.body.classList.remove('teen');
+  profile=null;gender=null;step='age';isTeen=false;
+  calcVal='';updateDisp();
+  document.getElementById('tb-profile').style.display='none';
+}
+
+function goHome(){
+  // Reset everything and go back to splash
+  document.getElementById('app-screen').classList.remove('visible');
+  document.getElementById('calc-screen').style.display='none';
+  document.getElementById('explainer-screen').style.display='none';
+  document.getElementById('explainer-screen').style.opacity='1';
+  document.body.classList.remove('teen');
+  profile=null;gender=null;step='age';isTeen=false;
+  calcVal='';updateDisp();
+  document.getElementById('tb-profile').style.display='none';
+  // Show splash with fade in
+  var splash=document.getElementById('splash-screen');
+  splash.style.opacity='0';
+  splash.style.display='flex';
+  setTimeout(function(){ splash.style.transition='opacity .4s ease'; splash.style.opacity='1'; },10);
+}
+
+function enterDemo(){
+  var splash=document.getElementById('splash-screen');
+  splash.style.opacity='0';
+  splash.style.transition='opacity .4s ease';
+  setTimeout(function(){
+    splash.style.display='none';
+    showExplainer();
+  },400);
+}
+
+function showExplainer(){
+  var ex=document.getElementById('explainer-screen');
+  ex.style.display='flex';
+  // Auto-hide after 5 seconds, or user can skip
+}
+
+function skipExplainer(){
+  var ex=document.getElementById('explainer-screen');
+  ex.style.opacity='0';
+  ex.style.transition='opacity .3s ease';
+  setTimeout(function(){
+    ex.style.display='none';
+    document.getElementById('calc-screen').style.display='flex';
+  },300);
+}
+
+function enterDashboard(){
+  window.location.href='https://luzcwong.github.io/YoTeCreo/yotecreo_dashboard.html';
+}
+
+// Splash stars
+var sp=document.getElementById('splash-stars');
+if(sp){
+  for(var i=0;i<20;i++){
+    var st=document.createElement('div');
+    var sz=Math.random()*3+1.5;
+    st.style.cssText='position:absolute;border-radius:50%;background:#fff;width:'+sz+'px;height:'+sz+'px;top:'+Math.random()*100+'%;left:'+Math.random()*100+'%;opacity:'+(Math.random()*.4+.05)+';animation:twinkle '+(2+Math.random()*3)+'s ease-in-out infinite;animation-delay:'+Math.random()*5+'s;';
+    sp.appendChild(st);
+  }
+}
+</script>
+</body>
+</html>
