@@ -1,0 +1,1217 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>YoTeCreo — Demo con Perfiles</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Nunito+Sans:wght@400;600&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg-kids:#0F0A2A;--bg-teen:#060B18;
+  --pu:#6C4FD4;--pu2:#A78BFA;--pu3:#EDE9FF;
+  --cy:#67E8F9;--cy2:#0EA5E9;--cy3:#0C4A6E;
+  --fu:#C026D3;
+  --tx:#fff;--tm:rgba(200,185,255,.75);--th:rgba(167,139,250,.45);
+  --tx-teen:#fff;--tm-teen:rgba(186,230,253,.7);--th-teen:rgba(103,232,249,.35);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Nunito',sans-serif;background:var(--bg-kids);color:var(--tx);min-height:100vh;min-height:100dvh;overflow:hidden;transition:background 0.8s ease;}
+@supports(padding-bottom:env(safe-area-inset-bottom)){
+  .input-area{padding-bottom:calc(16px + env(safe-area-inset-bottom));}
+}
+body.teen{background:var(--bg-teen);}
+
+/* ── STARS ── */
+.stars{position:fixed;inset:0;pointer-events:none;z-index:0;}
+.star{position:absolute;border-radius:50%;background:#fff;animation:twinkle 3s ease-in-out infinite;}
+@keyframes twinkle{0%,100%{opacity:.1}50%{opacity:.5}}
+
+/* ── CALCULATOR ── */
+#calc-screen{
+  position:fixed;inset:0;z-index:10;display:none;
+  flex-direction:column;align-items:center;justify-content:center;
+  padding:16px;overflow-y:auto;
+}
+.calc-wrap{
+  background:#1C1C1E;border-radius:20px;padding:16px;
+  width:min(300px,92vw);box-shadow:0 16px 48px rgba(0,0,0,.6);
+}
+.calc-display{text-align:right;padding:10px 14px 8px;border-bottom:1px solid rgba(255,255,255,.08);margin-bottom:10px;}
+.calc-label{font-size:11px;color:#8E8E93;font-family:-apple-system,sans-serif;margin-bottom:3px;}
+.calc-num{font-size:36px;font-weight:200;color:#fff;font-family:-apple-system,sans-serif;letter-spacing:-1px;min-height:44px;}
+.calc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.calc-btn{
+  background:#333;border:none;border-radius:50%;
+  width:100%;aspect-ratio:1;font-size:18px;color:#fff;
+  cursor:pointer;font-family:-apple-system,sans-serif;
+  transition:transform .1s;display:flex;align-items:center;justify-content:center;
+}
+.calc-btn:active{transform:scale(.9);}
+.calc-btn.op{background:#FF9F0A;}
+.calc-btn.zero{grid-column:span 2;border-radius:32px;aspect-ratio:auto;padding:0 24px;height:56px;justify-content:flex-start;}
+.calc-btn.eq{background:#FF9F0A;}
+.calc-btn.fn{background:#636366;}
+.calc-code{color:var(--pu2);}
+@keyframes codeGlow{0%{color:var(--pu2);text-shadow:0 0 20px var(--pu2)}100%{color:var(--pu2);text-shadow:0 0 8px var(--pu2)}}
+.calc-hint{
+  text-align:center;margin-top:10px;font-size:12px;font-weight:700;
+  color:rgba(167,139,250,.85);font-family:'Nunito',sans-serif;
+  background:rgba(108,79,212,.15);border:1px solid rgba(167,139,250,.25);
+  border-radius:10px;padding:9px 12px;
+}
+@keyframes eqPulse{
+  0%,100%{background:#FF9F0A;transform:scale(1);}
+  50%{background:#C026D3;box-shadow:0 0 16px rgba(192,38,211,.7);transform:scale(1.1);}
+}
+.calc-btn.eq.hint{animation:eqPulse 0.9s ease-in-out infinite;}
+
+/* ── APP SCREEN ── */
+#app-screen{
+  position:fixed;inset:0;z-index:20;display:none;
+  flex-direction:column;height:100%;height:100dvh;overflow:hidden;
+}
+#app-screen.visible{display:flex;}
+
+/* TOPBAR */
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 14px 6px;flex-shrink:0;
+  flex-wrap:wrap;gap:4px;
+  background:rgba(0,0,0,.2);
+}
+.tb-logo{font-size:15px;font-weight:900;color:var(--pu2);}
+.tb-logo.teen{color:var(--cy);}
+.tb-back{
+  background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);
+  border-radius:20px;padding:6px 12px;font-size:11px;font-weight:800;
+  color:#fff;cursor:pointer;font-family:'Nunito',sans-serif;
+  white-space:nowrap;
+}
+.tb-back:active{background:rgba(255,255,255,.2);}
+.tb-profile{font-size:10px;font-weight:800;padding:4px 10px;border-radius:12px;white-space:nowrap;}
+.tb-profile.kids{background:rgba(108,79,212,.3);color:#C4B5FD;}
+.tb-profile.teen{background:rgba(103,232,249,.18);color:#67E8F9;}
+
+/* AVATAR AREA */
+.avatar-area{display:flex;justify-content:center;padding:2px 0 0px;flex-shrink:0;}
+@keyframes floatKids{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes floatTeen{0%,100%{transform:translateY(0)}40%{transform:translateY(-6px)}}
+.yoti-kids{animation:floatKids 3s ease-in-out infinite;}
+.yoti-teen{animation:floatTeen 3.5s ease-in-out infinite;}
+
+/* CHAT */
+.chat-area{
+  flex:1;overflow-y:auto;
+  padding:8px 14px 120px;
+  display:flex;flex-direction:column;gap:8px;
+  min-height:0;
+  -webkit-overflow-scrolling:touch;
+  scroll-behavior:smooth;
+  overflow-anchor:none;
+}
+.chat-area::-webkit-scrollbar{width:3px;}
+.chat-area::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:2px;}
+.msg{
+  max-width:88%;padding:10px 14px;border-radius:18px;
+  font-size:14px;line-height:1.55;
+  font-family:'Nunito Sans',sans-serif;font-weight:600;
+  word-break:break-word;
+}
+.msg.yoti{
+  align-self:flex-start;
+  background:rgba(108,79,212,.3);
+  color:#E9E3FF;
+  border-bottom-left-radius:4px;
+}
+.msg.yoti.teen{background:rgba(14,165,233,.25);color:#E0F2FE;}
+.msg.user{align-self:flex-end;background:var(--pu);color:#fff;border-bottom-right-radius:4px;}
+.msg.user.teen{background:var(--cy2);}
+@keyframes msgIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.msg{animation:msgIn .25s ease forwards;}
+
+/* TYPING */
+.typing{
+  align-self:flex-start;
+  background:rgba(108,79,212,.25);
+  border-radius:18px;border-bottom-left-radius:4px;
+  padding:10px 14px;display:flex;gap:5px;align-items:center;
+}
+.typing.teen{background:rgba(14,165,233,.18);}
+.dot-t{width:7px;height:7px;border-radius:50%;background:var(--pu2);animation:dotBounce 1.2s ease-in-out infinite;}
+.dot-t.teen{background:var(--cy);}
+.dot-t:nth-child(2){animation-delay:.2s}
+.dot-t:nth-child(3){animation-delay:.4s}
+@keyframes dotBounce{0%,80%,100%{transform:scale(.7);opacity:.4}40%{transform:scale(1);opacity:1}}
+
+/* QUICK REPLIES */
+.quick-wrap{
+  padding:4px 14px 2px;
+  display:flex;gap:5px;flex-wrap:wrap;
+  flex-shrink:0;
+}
+.qbtn{
+  background:rgba(255,255,255,.1);
+  border:1.5px solid rgba(255,255,255,.25);
+  border-radius:20px;padding:6px 12px;
+  font-size:12px;font-weight:700;
+  color:#fff;
+  cursor:pointer;font-family:'Nunito',sans-serif;
+  transition:all .15s;
+  white-space:normal;
+  word-break:break-word;
+  max-width:100%;
+  line-height:1.3;
+}
+.qbtn:active{background:rgba(108,79,212,.4);border-color:var(--pu2);}
+
+/* INPUT */
+.input-area{
+  padding:6px 14px 10px;
+  display:flex;gap:8px;align-items:center;
+  flex-shrink:0;
+  background:rgba(0,0,0,.15);
+}
+.input-wrap{
+  flex:1;
+  background:rgba(255,255,255,.1);
+  border:1.5px solid rgba(255,255,255,.2);
+  border-radius:24px;padding:10px 16px;
+  display:flex;align-items:center;
+  min-height:44px;
+}
+.input-wrap.teen{border-color:rgba(103,232,249,.25);}
+.chat-input{
+  background:none;border:none;outline:none;
+  color:#fff;font-family:'Nunito Sans',sans-serif;
+  font-size:15px;font-weight:600;flex:1;
+  -webkit-appearance:none;
+}
+.chat-input::placeholder{color:rgba(255,255,255,.4);}
+.send-btn{
+  width:44px;height:44px;border-radius:50%;border:none;
+  background:var(--pu);color:#fff;font-size:18px;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;transition:transform .15s;
+}
+.send-btn.teen{background:var(--cy2);}
+.send-btn:active{transform:scale(.93);}
+
+/* TRANSITION OVERLAY */
+#transition{position:fixed;inset:0;z-index:50;background:var(--pu);opacity:0;pointer-events:none;transition:opacity .3s;}
+#transition.teen-transition{background:var(--cy2);}
+
+/* FOOTER */
+.app-footer{text-align:center;padding:1px 0 3px;font-size:9px;color:rgba(255,255,255,.18);font-family:'Nunito',sans-serif;flex-shrink:0;}
+</style>
+</head>
+<body>
+
+<!-- STARS -->
+<div class="stars" id="stars"></div>
+
+<!-- SPLASH SCREEN -->
+<div id="splash-screen" style="
+  position:fixed;inset:0;z-index:30;
+  background:linear-gradient(160deg,#0F0A2A 0%,#1A1040 55%,#0D0820 100%);
+  display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
+  padding:32px 24px 24px;text-align:center;font-family:'Nunito',sans-serif;
+  overflow-y:auto;
+">
+  <!-- Animated background dots -->
+  <div style="position:absolute;inset:0;pointer-events:none;" id="splash-stars"></div>
+
+  <!-- Platform label small -->
+  <div style="font-size:10px;font-weight:800;color:rgba(167,139,250,.4);letter-spacing:2.5px;text-transform:uppercase;margin-bottom:14px;">
+    YoTeCreo
+  </div>
+
+  <!-- Yoti imagen real -->
+  <div style="margin-bottom:14px;" id="splash-logo">
+    <img src="https://luzcwong.github.io/YoTeCreo/Yoti_1.1.png" 
+    style="width:140px;height:140px;object-fit:cover;border-radius:50%;
+    box-shadow:0 8px 32px rgba(108,79,212,.6);
+    animation:floatKids 3s ease-in-out infinite;
+    border:3px solid rgba(167,139,250,.3);"
+    alt="Yoti"/>
+  </div>
+
+  <!-- Yoti — the real star -->
+  <div style="font-size:44px;font-weight:900;color:#fff;letter-spacing:-1px;margin-bottom:4px;">
+    Yoti
+  </div>
+  <div style="font-size:12px;font-weight:800;color:#A78BFA;letter-spacing:3px;text-transform:uppercase;margin-bottom:18px;">
+    Tu amigo guardián
+  </div>
+
+  <!-- What Yoti does — child friendly language -->
+  <div style="
+    font-size:15px;color:rgba(220,210,255,.9);
+    line-height:1.65;max-width:290px;
+    font-family:'Nunito Sans',sans-serif;font-weight:600;
+    margin-bottom:8px;
+  ">
+    Si alguien te hace daño en el cole o en el insti, cuéntaselo a Yoti. Él avisa a alguien de confianza para que te ayude — sin que el acosador se entere.
+  </div>
+
+  <div style="
+    font-size:11px;margin-bottom:22px;
+    font-family:'Nunito Sans',sans-serif;
+    text-align:center;line-height:1.6;
+  ">
+    <div style="color:rgba(167,139,250,.55);margin-bottom:2px;">Concepto, Diseño y Desarrollo</div>
+    <div style="color:rgba(196,181,253,.85);font-weight:700;font-size:12px;">Luz C. Wong Naranjo</div>
+  </div>
+
+  <!-- Buttons -->
+  <div style="display:flex;flex-direction:column;gap:12px;width:100%;max-width:300px;">
+    <button onclick="enterDemo()" style="
+      background:linear-gradient(135deg,#6C4FD4,#C026D3);
+      border:none;border-radius:28px;padding:16px 32px;
+      font-family:'Nunito',sans-serif;font-size:16px;font-weight:900;
+      color:#fff;cursor:pointer;
+      box-shadow:0 4px 20px rgba(108,79,212,.4);
+      transition:transform .15s,box-shadow .15s;
+      letter-spacing:.3px;
+    " onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 28px rgba(108,79,212,.5)'"
+       onmouseout="this.style.transform='none';this.style.boxShadow='0 4px 20px rgba(108,79,212,.4)'">
+      Conoce a Yoti →
+    </button>
+
+    <button onclick="enterDashboard()" style="
+      background:rgba(255,255,255,.06);
+      border:1.5px solid rgba(167,139,250,.3);
+      border-radius:28px;padding:14px 32px;
+      font-family:'Nunito',sans-serif;font-size:14px;font-weight:800;
+      color:rgba(200,185,255,.85);cursor:pointer;
+      transition:all .15s;
+    " onmouseover="this.style.background='rgba(108,79,212,.25)';this.style.color='#fff'"
+       onmouseout="this.style.background='rgba(255,255,255,.06)';this.style.color='rgba(200,185,255,.85)'">
+      Dashboard del colegio
+    </button>
+  </div>
+
+
+</div>
+
+<!-- EXPLAINER SCREEN -->
+<div id="explainer-screen" style="
+  position:fixed;inset:0;z-index:29;
+  background:linear-gradient(160deg,#0F0A2A 0%,#1A1040 55%,#0D0820 100%);
+  display:none;flex-direction:column;align-items:center;justify-content:flex-start;
+  padding:14px 24px 16px;text-align:center;font-family:'Nunito',sans-serif;
+  overflow-y:auto;
+">
+  <!-- Back to home -->
+  <div style="width:100%;max-width:300px;display:flex;justify-content:flex-start;margin-bottom:8px;">
+    <button onclick="goHome()" style="
+      background:rgba(108,79,212,.15);
+      border:1px solid rgba(167,139,250,.25);
+      border-radius:20px;padding:6px 14px;
+      font-family:'Nunito',sans-serif;font-size:12px;font-weight:800;
+      color:rgba(196,181,253,.85);cursor:pointer;
+    ">← Inicio</button>
+  </div>
+
+  <!-- Secret badge -->
+  <div style="
+    background:rgba(192,38,211,.15);border:1px solid rgba(192,38,211,.35);
+    border-radius:20px;padding:6px 18px;font-size:11px;font-weight:800;
+    color:#E879F9;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;
+  ">Modo camuflaje activado</div>
+
+  <!-- Icon -->
+  <div style="font-size:36px;margin-bottom:8px;">🔒</div>
+
+  <!-- Title -->
+  <div style="font-size:19px;font-weight:900;color:#fff;margin-bottom:8px;line-height:1.2;">
+    Yoti se camufla<br>como una calculadora
+  </div>
+
+  <!-- Description -->
+  <div style="font-size:12px;color:rgba(200,185,255,.85);line-height:1.55;max-width:320px;font-family:'Nunito Sans',sans-serif;font-weight:600;margin-bottom:14px;">
+    Si alguien coge tu móvil, solo ve una calculadora normal. Pero tú tienes un código secreto para hablar con Yoti en privado.
+  </div>
+
+  <!-- Steps -->
+  <div style="display:flex;flex-direction:column;gap:6px;width:100%;max-width:300px;margin-bottom:14px;">
+    <div style="
+      display:flex;align-items:center;gap:14px;
+      background:rgba(108,79,212,.15);border:1px solid rgba(108,79,212,.25);
+      border-radius:14px;padding:10px 14px;text-align:left;
+    ">
+      <div style="font-size:18px;flex-shrink:0;">🔢</div>
+      <div>
+        <div style="font-size:13px;font-weight:800;color:#C4B5FD;">Paso 1</div>
+        <div style="font-size:12px;color:rgba(200,185,255,.75);font-family:'Nunito Sans',sans-serif;">Escribe el código secreto <strong style="color:#A78BFA;">1 · 2 · 3</strong></div>
+      </div>
+    </div>
+    <div style="
+      display:flex;align-items:center;gap:14px;
+      background:rgba(108,79,212,.15);border:1px solid rgba(108,79,212,.25);
+      border-radius:14px;padding:10px 14px;text-align:left;
+    ">
+      <div style="font-size:18px;flex-shrink:0;">🟰</div>
+      <div>
+        <div style="font-size:13px;font-weight:800;color:#C4B5FD;">Paso 2</div>
+        <div style="font-size:12px;color:rgba(200,185,255,.75);font-family:'Nunito Sans',sans-serif;">Pulsa <strong style="color:#A78BFA;">=</strong> para confirmar</div>
+      </div>
+    </div>
+    <div style="
+      display:flex;align-items:center;gap:14px;
+      background:rgba(192,38,211,.12);border:1px solid rgba(192,38,211,.25);
+      border-radius:14px;padding:10px 14px;text-align:left;
+    ">
+      <div style="font-size:18px;flex-shrink:0;">💜</div>
+      <div>
+        <div style="font-size:13px;font-weight:800;color:#E879F9;">Paso 3</div>
+        <div style="font-size:12px;color:rgba(200,185,255,.75);font-family:'Nunito Sans',sans-serif;">¡Yoti aparece listo para escucharte!</div>
+      </div>
+    </div>
+  </div>
+
+
+
+  <!-- CTA button -->
+  <button onclick="skipExplainer()" style="
+    background:linear-gradient(135deg,#6C4FD4,#C026D3);
+    border:none;border-radius:28px;padding:12px 32px;
+    font-family:'Nunito',sans-serif;font-size:14px;font-weight:900;
+    color:#fff;cursor:pointer;
+    box-shadow:0 4px 20px rgba(108,79,212,.4);
+    letter-spacing:.3px;
+  ">¡Entendido! Probar ahora →</button>
+
+
+</div>
+
+<!-- TRANSITION OVERLAY -->
+<div id="transition"></div>
+
+<!-- CALCULATOR -->
+<div id="calc-screen">
+  <div class="calc-wrap">
+    <div class="calc-display">
+      <div class="calc-label">Calculadora</div>
+      <div class="calc-num" id="calc-display">0</div>
+    </div>
+    <div class="calc-grid">
+      <button class="calc-btn fn" onclick="calcFn('AC')">AC</button>
+      <button class="calc-btn fn" onclick="calcFn('+/-')">+/-</button>
+      <button class="calc-btn fn" onclick="calcFn('%')">%</button>
+      <button class="calc-btn op" onclick="calcOp('÷')">÷</button>
+      <button class="calc-btn" onclick="calcNum('7')">7</button>
+      <button class="calc-btn" onclick="calcNum('8')">8</button>
+      <button class="calc-btn" onclick="calcNum('9')">9</button>
+      <button class="calc-btn op" onclick="calcOp('×')">×</button>
+      <button class="calc-btn" onclick="calcNum('4')">4</button>
+      <button class="calc-btn" onclick="calcNum('5')">5</button>
+      <button class="calc-btn" onclick="calcNum('6')">6</button>
+      <button class="calc-btn op" onclick="calcOp('-')">−</button>
+      <button class="calc-btn" onclick="calcNum('1')">1</button>
+      <button class="calc-btn" onclick="calcNum('2')">2</button>
+      <button class="calc-btn" onclick="calcNum('3')">3</button>
+      <button class="calc-btn op" onclick="calcOp('+')">+</button>
+      <button class="calc-btn zero" onclick="calcNum('0')">0</button>
+      <button class="calc-btn" onclick="calcFn('.')">.</button>
+      <button class="calc-btn op eq" onclick="calcEq()">=</button>
+    </div>
+    <div class="calc-hint" style="
+  color:rgba(167,139,250,.7);font-size:12px;font-weight:700;
+  margin-top:14px;padding:10px 14px;
+  background:rgba(108,79,212,.12);
+  border:1px solid rgba(167,139,250,.2);
+  border-radius:12px;letter-spacing:.3px;
+">🔒 Código secreto: escribe <span style="color:#A78BFA;font-weight:900;">1 · 2 · 3</span> y pulsa <span style="color:#A78BFA;font-weight:900;">=</span></div>
+    <button onclick="goHome()" style="
+      width:100%;margin-top:8px;
+      background:rgba(108,79,212,.12);
+      border:1px solid rgba(167,139,250,.2);
+      border-radius:12px;padding:8px;
+      font-family:'Nunito',sans-serif;font-size:12px;font-weight:800;
+      color:rgba(196,181,253,.75);cursor:pointer;
+      display:flex;align-items:center;justify-content:center;gap:6px;
+    ">🏠 Volver al inicio</button>
+
+  </div>
+</div>
+
+<!-- APP SCREEN -->
+<div id="app-screen">
+  <div class="topbar">
+    <div class="tb-logo" id="tb-logo">YoTeCreo</div>
+    <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end;">
+      <div class="tb-profile kids" id="tb-profile" style="display:none;"></div>
+      <button class="tb-back" onclick="goBack()">← Calculadora</button>
+      <button class="tb-back" onclick="goHome()" style="background:rgba(192,38,211,.25);border-color:rgba(232,121,249,.4);color:#E879F9;width:36px;height:36px;padding:0;display:flex;align-items:center;justify-content:center;font-size:18px;border-radius:50%;">🏠</button>
+    </div>
+  </div>
+
+  <div class="avatar-area" id="avatar-area">
+    <!-- Avatar se inyecta por JS -->
+  </div>
+
+  <div class="chat-area" id="chat-area"></div>
+
+  <div class="input-area">
+    <div class="input-wrap" id="input-wrap">
+      <input class="chat-input" id="chat-input" placeholder="Escríbeme aquí..." autocomplete="off" onkeydown="if(event.key==='Enter')sendMsg()"/>
+    </div>
+    <button class="send-btn" id="send-btn" onclick="sendMsg()">→</button>
+  </div>
+
+  <div class="quick-wrap" id="quick-wrap"></div>
+  <div class="app-footer">YoTeCreo © 2026 · Luz C. Wong Naranjo</div>
+</div>
+
+<script>
+// ── STARS ──
+var starsEl=document.getElementById('stars');
+for(var i=0;i<18;i++){
+  var s=document.createElement('div');s.className='star';
+  var sz=Math.random()*3+1.5;
+  s.style.cssText='width:'+sz+'px;height:'+sz+'px;top:'+Math.random()*100+'%;left:'+Math.random()*100+'%;animation-delay:'+Math.random()*5+'s;animation-duration:'+(2+Math.random()*3)+'s;';
+  starsEl.appendChild(s);
+}
+
+// ── CALCULATOR ──
+var calcVal='';var calcOper='';var calcNew=true;var codeReady=false;
+
+function calcNum(n){
+  if(calcNew){calcVal=n;calcNew=false;}
+  else calcVal=(calcVal==='0'?n:calcVal+n);
+  codeReady=false;
+  updateDisp();
+}
+function calcOp(op){calcOper=op;calcNew=true;updateDisp();}
+function calcFn(f){
+  if(f==='AC'){calcVal='0';calcOper='';calcNew=true;codeReady=false;}
+  updateDisp();
+}
+function calcEq(){
+  if(calcVal==='123'){
+    codeReady=true;
+    updateDisp();
+    setTimeout(activateYoti, 900);
+    return;
+  }
+  calcNew=true;
+  updateDisp();
+}
+function updateDisp(){
+  var d=document.getElementById('calc-display');
+  var eqBtn=document.querySelector('.calc-btn.eq');
+  if(calcVal==='123' && codeReady){
+    d.className='calc-num calc-code';
+    d.textContent='Yoti...';
+    if(eqBtn) eqBtn.classList.remove('hint');
+  } else if(calcVal==='123'){
+    d.className='calc-num calc-code';
+    d.textContent='123';
+    // Pulse the = button to guide the child
+    if(eqBtn) eqBtn.classList.add('hint');
+  } else {
+    d.className='calc-num';
+    d.textContent=calcVal||'0';
+    // Remove hint if user types something else
+    if(eqBtn) eqBtn.classList.remove('hint');
+  }
+}
+
+// ── AVATARS ──
+var YOTI_KIDS_SVG='<img src="https://luzcwong.github.io/YoTeCreo/Yoti_1.1.png" style="width:60px;height:60px;object-fit:cover;border-radius:50%;box-shadow:0 4px 16px rgba(108,79,212,.5);animation:floatKids 3s ease-in-out infinite;" alt="Yoti"/>';
+
+
+var YOTI_TEEN_SVG='<img src="https://luzcwong.github.io/YoTeCreo/Yoti_1.1.png" style="width:60px;height:60px;object-fit:cover;border-radius:50%;box-shadow:0 4px 16px rgba(14,165,233,.5);animation:floatTeen 3.5s ease-in-out infinite;filter:hue-rotate(180deg) saturate(1.2);" alt="Yoti"/>';
+
+
+// ── STATE ──
+var profile=null; // 'kids' or 'teen'
+var gender=null;  // 'nino','nina','chico','chica'
+var step='age';   // onboarding step
+var isTeen=false;
+
+// ── ONBOARDING SCRIPTS ──
+var scriptAge=[
+  {from:'yoti', text:'¡Hola! Soy Yoti, tu amigo guardián 💜 Antes de empezar, ¿cuántos años tienes?'},
+];
+var ageQuick=['8','9','10','11','12','13','14','15','16','17'];
+
+function getGenderQ(age){
+  var n=parseInt(age);
+  if(n<=13) return '¿Eres niño o niña?';
+  return '¿Eres chico o chica?';
+}
+function getGenderQuick(age){
+  var n=parseInt(age);
+  if(n<=13) return ['Niño','Niña'];
+  return ['Chico','Chica'];
+}
+
+// ── WELCOME MESSAGES BY PROFILE ──
+var welcomeKidsNino=[
+  '¡Genial! Ahora soy <b>tu</b> Yoti 💜',
+  'Soy tu amigo secreto. Nadie más puede ver lo que me cuentes aquí.',
+  '¿Hay algo que quieras contarme hoy?'
+];
+var welcomeKidsNina=[
+  '¡Perfecto! Ahora soy <b>tu</b> Yoti 💜',
+  'Soy tu amiga secreta. Todo lo que me cuentes es solo nuestro.',
+  '¿Cómo estás hoy? ¿Quieres contarme algo?'
+];
+var welcomeTeenChico=[
+  'Tío, aquí estoy. Soy Yoti, tu aliado.',
+  'Lo que me cuentes no sale de aquí. Nadie más lo ve.',
+  '¿Qué está pasando? Puedes contarme.'
+];
+var welcomeTeenChica=[
+  'Hola, aquí estoy. Soy Yoti, tu aliada.',
+  'Lo que me cuentes es solo tuyo. Total privacidad.',
+  '¿Quieres contarme qué está pasando?'
+];
+
+// ── ACTIVATE ──
+function activateYoti(){
+  document.getElementById('calc-screen').style.display='none';
+  var app=document.getElementById('app-screen');
+  app.classList.add('visible');
+  showAvatar('neutral');
+  startOnboarding();
+}
+
+function showAvatar(mode){
+  var area=document.getElementById('avatar-area');
+  if(mode==='teen'){
+    area.innerHTML=YOTI_TEEN_SVG;
+  } else {
+    area.innerHTML=YOTI_KIDS_SVG;
+  }
+}
+
+function startOnboarding(){
+  step='age';
+  clearChat();
+  setTimeout(function(){
+    addMsg('yoti', scriptAge[0].text);
+    setTimeout(function(){
+      showQuick(ageQuick, function(age){handleAge(age);});
+    },400);
+  },400);
+}
+
+function handleAge(age){
+  var n=parseInt(age);
+  addMsg('user',age);
+  clearQuick();
+  isTeen=(n>=14);
+  step='gender';
+  showTyping(function(){
+    addMsg('yoti', getGenderQ(age));
+    showQuick(getGenderQuick(age), function(g){handleGender(g,n);});
+  });
+}
+
+function handleGender(g, age){
+  addMsg('user',g);
+  clearQuick();
+  gender=g.toLowerCase();
+  profile=isTeen?'teen':'kids';
+  showTyping(function(){
+    loadProfile();
+  });
+}
+
+function loadProfile(){
+  var overlay=document.getElementById('transition');
+  overlay.style.opacity='1';
+  if(isTeen) overlay.classList.add('teen-transition');
+  else overlay.classList.remove('teen-transition');
+  overlay.style.pointerEvents='all';
+
+  setTimeout(function(){
+    applyProfile();
+    overlay.style.opacity='0';
+    overlay.style.pointerEvents='none';
+    runWelcome();
+  },500);
+}
+
+function applyProfile(){
+  var body=document.body;
+  var tbLogo=document.getElementById('tb-logo');
+  var tbProf=document.getElementById('tb-profile');
+  var inputWrap=document.getElementById('input-wrap');
+  var sendBtn=document.getElementById('send-btn');
+  var chatInput=document.getElementById('chat-input');
+
+  if(isTeen){
+    body.classList.add('teen');
+    showAvatar('teen');
+    tbLogo.className='tb-logo teen';
+    tbProf.className='tb-profile teen';
+    inputWrap.className='input-wrap teen';
+    sendBtn.className='send-btn teen';
+  } else {
+    body.classList.remove('teen');
+    showAvatar('neutral');
+    tbLogo.className='tb-logo';
+    tbProf.className='tb-profile kids';
+    inputWrap.className='input-wrap';
+    sendBtn.className='send-btn';
+  }
+
+  // Set profile label
+  var labels={'nino':'Perfil A · Niño','nina':'Perfil B · Niña','chico':'Perfil C · Chico','chica':'Perfil D · Chica'};
+  tbProf.textContent=labels[gender]||'';
+  tbProf.style.display='block';
+}
+
+function runWelcome(){
+  clearChat();
+  var msgs=getWelcomeMsgs();
+  var delay=300;
+  msgs.forEach(function(m,i){
+    setTimeout(function(){
+      showTypingThen(m, i<msgs.length-1?null:function(){
+        if(isTeen) showTeenQuick();
+        else showKidsQuick();
+      });
+    }, delay);
+    delay+=900;
+  });
+}
+
+function getWelcomeMsgs(){
+  if(gender==='nino') return welcomeKidsNino;
+  if(gender==='nina') return welcomeKidsNina;
+  if(gender==='chico') return welcomeTeenChico;
+  return welcomeTeenChica;
+}
+
+// ── 5 CASOS DE DEMO ──────────────────────────────────────────
+// Cada caso: {keywords, line1, line2, quick2}
+var CASOS_KIDS_NINO = [
+  { keys:['empuj','pegan','pega','golpe','patada','patio','recreo','daño','pegar','van a pegar','van a esperar'],
+    l1:'Que te amenacen o te peguen está muy mal. Eso no debe pasar 💜',
+    l2:'¿Cuándo dicen que va a pasar? ¿Es hoy?' },
+  { keys:['dinero','paga','pasta','quitan','roban','amenaz','salida','pegar'],
+    l1:'Amenazarte para quitarte dinero es muy serio. Eso no puede pasar 💜',
+    l2:'¿Es hoy cuando dicen que van a hacerlo, o ya ha pasado antes?' },
+  { keys:['ignoran','solo','nadie','hablan','amigos','exclu'],
+    l1:'Que te dejen fuera así duele muchísimo. Lo que sientes es completamente real 💜',
+    l2:'¿Cuánto tiempo llevas así?' },
+  { keys:['miedo','aterr','asust','no quiero ir','cole'],
+    l1:'Que tengas miedo de ir al cole tiene sentido. Por eso estoy aquí 💜',
+    l2:'¿Qué es lo que más te da miedo cuando llegas?' },
+  { keys:['insultan','llaman','burlan','mote','idiota','tonto','gordo'],
+    l1:'Que te insulten así está muy mal. Las palabras también hacen daño 💜',
+    l2:'¿Es siempre la misma persona o son varios?' }
+];
+
+var CASOS_KIDS_NINA = [
+  { keys:['grupo','whatsapp','quitado','sacado','expulsado'],
+    l1:'Que te quiten del grupo sin explicación duele muchísimo. Lo que sientes es muy real 💜',
+    l2:'¿Sabes si pasó algo que lo desencadenó o fue de repente?' },
+  { keys:['hablan mal','cotillean','rumores','mentiras','dicen cosas'],
+    l1:'Que hablen mal de ti a tus espaldas es muy duro. Eso no está bien 💜',
+    l2:'¿Lo hacen solo en persona o también por el móvil?' },
+  { keys:['ignoran','no me hablan','sola','nadie','exclu','apart'],
+    l1:'Que tus amigas dejen de hablarte sin decirte por qué... eso duele un montón 💜',
+    l2:'¿Cuánto tiempo llevas así?' },
+  { keys:['foto','imagen','red','instagram','tiktok','suben'],
+    l1:'Subir cosas tuyas sin tu permiso está muy mal. Eso no deberían hacerlo 💜',
+    l2:'¿Sabes quién lo está haciendo?' },
+  { keys:['miedo','no quiero','cole','sola','asust'],
+    l1:'Es normal sentirse así cuando pasan estas cosas. Por eso estoy aquí 💜',
+    l2:'¿Qué es lo que más te preocupa ahora mismo?' }
+];
+
+var CASOS_TEEN_CHICO = [
+  { keys:['pegan','golpean','empujan','pelean','agreden','físic'],
+    l1:'Que te agredan físicamente es violencia. Eso hay que pararlo, no aguantarlo.',
+    l2:'¿Dónde suele pasar — en clase, en el patio, a la salida?' },
+  { keys:['gay','maric','rarito','friki','diferente','orientac','identidad','insultan','insultos'],
+    l1:'Insultarte así y amenazarte con pegarte es acoso. Eso no puede seguir pasando.',
+    l2:'¿Cuántas veces ha pasado? ¿Es siempre el mismo grupo?' },
+  { keys:['whatsapp','instagram','red','foto','video','difunden','mandan'],
+    l1:'El acoso por redes es igual de real que el físico. Lo que sientes es completamente válido.',
+    l2:'¿Sabes quién o quiénes están detrás?' },
+  { keys:['dinero','paga','quitan','roban','amenaz','extorsion'],
+    l1:'Que te amenacen para quitarte dinero es extorsión. Eso es muy serio y tiene solución.',
+    l2:'¿Ya ha pasado antes o es la primera vez?' },
+  { keys:['insti','clase','no quiero','miedo','solo','nadie'],
+    l1:'Que no quieras ir al insti por esto tiene todo el sentido. Pero no tienes que enfrentarlo solo.',
+    l2:'¿Cuánto tiempo llevas así?' }
+];
+
+var CASOS_TEEN_CHICA = [
+  { keys:['foto','cuenta','falsa','instagram','suplant','imagen','difunden'],
+    l1:'Eso es suplantación de identidad y es muy serio. Tienes derecho a que lo paren.',
+    l2:'¿Sabes quién puede estar detrás o tienes alguna sospecha?' },
+  { keys:['controla','vigila','pareja','novio','novia','celoso','celos','revisa'],
+    l1:'Que alguien te controle así no es amor, es control. Y eso no está bien.',
+    l2:'¿Cuánto tiempo lleva pasando esto?' },
+  { keys:['grupo','quitado','exclu','apart','amigas','hablan','ignoran'],
+    l1:'La exclusión duele igual que los golpes. Lo que estás sintiendo es completamente real.',
+    l2:'¿Es un grupo entero o hay alguien que lo está organizando?' },
+  { keys:['whatsapp','mandan','mensajes','amenazas','insultos','acosan','redes'],
+    l1:'El ciberacoso es igual de real que el físico. No tienes que aguantarlo sola.',
+    l2:'¿Cuánto tiempo lleva pasando y sabes quién es?' },
+  { keys:['deepfake','montaje','foto falsa','video falso','imagen manipul'],
+    l1:'Crear imágenes falsas tuyas es un delito. Eso es muy serio y tiene solución legal.',
+    l2:'¿Lo ha visto mucha gente o está limitado a un grupo?' }
+];
+
+// openQuestion flag
+var openQuestion=false;
+
+function getCasos(){
+  if(gender==='nino') return CASOS_KIDS_NINO;
+  if(gender==='nina') return CASOS_KIDS_NINA;
+  if(gender==='chico') return CASOS_TEEN_CHICO;
+  return CASOS_TEEN_CHICA;
+}
+
+function matchCaso(text){
+  var t=text.toLowerCase();
+  var casos=getCasos();
+  for(var i=0;i<casos.length;i++){
+    for(var j=0;j<casos[i].keys.length;j++){
+      if(t.includes(casos[i].keys[j])) return casos[i];
+    }
+  }
+  return null;
+}
+
+function getFallback(){
+  return isTeen
+    ? {l1:'Gracias por contarme eso. Lo que me dices es importante.',
+       l2:'¿Quieres darme más detalles para poder ayudarte mejor?'}
+    : {l1:'Gracias por contármelo. Eso que sientes importa mucho 💜',
+       l2:'¿Quieres contarme algo más sobre lo que está pasando?'};
+}
+
+function showKidsQuick(){
+  openQuestion=false;
+  var options;
+  if(gender==='nina'){
+    options=['Me han quitado del grupo','Hablan mal de mí','Mis amigas ya no me hablan','Estoy bien hoy'];
+  } else {
+    options=['Me están haciendo daño','Me ignoran mis amigos','Tengo miedo de ir al cole','Estoy bien hoy'];
+  }
+  showQuick(options, function(opt){
+    addMsg('user',opt);
+    clearQuick();
+    var caso=matchCaso(opt)||getFallback();
+    showTyping(function(){
+      addMsg('yoti', caso.l1);
+      if(opt.toLowerCase().includes('bien')){
+        setTimeout(function(){ showKidsQuick2(); },400);
+      } else {
+        openQuestion=true;
+        setTimeout(function(){
+          showTyping(function(){
+            addMsg('yoti', caso.l2);
+            showQuick(['Prefiero no contarlo ahora'], function(){
+              openQuestion=false;
+              addMsg('user','Prefiero no contarlo ahora');
+              clearQuick();
+              showTyping(function(){
+                addMsg('yoti','Está bien. Aquí estaré cuando estés listo/a 💜');
+                setTimeout(showKidsQuick2, 500);
+              });
+            });
+          });
+        }, 500);
+      }
+    });
+  });
+}
+
+function showKidsQuick2(){
+  openQuestion=false;
+  var options=['Sí, hay más','¿Puedes avisar a alguien?','Gracias Yoti'];
+  showQuick(options, function(opt){
+    addMsg('user',opt);
+    clearQuick();
+    showTyping(function(){
+      if(opt.includes('avisar')){
+        addMsg('yoti','Claro que sí. En silencio, sin que nadie lo vea, puedo avisar a tu persona de confianza ahora mismo. ¿Quieres que lo haga? 💜');
+        setTimeout(function(){
+          showQuick(['Sí, avisa por favor','Espera, todavía no'], function(r){
+            addMsg('user',r);
+            clearQuick();
+            showTyping(function(){
+              if(r.includes('Sí')){
+                addMsg('yoti','Aviso enviado 💜 Tu persona de confianza ya lo sabe. No estás solo/a.');
+              } else {
+                addMsg('yoti','De acuerdo. Aquí estaré cuando quieras 💜');
+                setTimeout(showKidsQuick2, 400);
+              }
+            });
+          });
+        }, 400);
+      } else if(opt.includes('más')){
+        addMsg('yoti','Cuéntame. Aquí estoy, no me voy a ningún sitio 💜');
+        openQuestion=true;
+        showQuick(['Prefiero no contarlo ahora'], function(){
+          openQuestion=false;
+          addMsg('user','Prefiero no contarlo ahora');
+          clearQuick();
+          showTyping(function(){
+            addMsg('yoti','Vale. Sin prisa. Cuando quieras 💜');
+            setTimeout(showKidsQuick2, 400);
+          });
+        });
+      } else {
+        addMsg('yoti','Para eso estoy yo. Cuando lo necesites, 1·2·3 y aquí estaré. Cuídate mucho 💜');
+      }
+    });
+  });
+}
+
+function showTeenQuick(){
+  openQuestion=false;
+  var options;
+  if(gender==='chica'){
+    options=['Me acosan por redes o WhatsApp','Alguien me controla o me vigila','Hablan mal de mí o difunden fotos','Hoy estoy bien, solo probando'];
+  } else {
+    options=['Me están haciendo la vida imposible','Me acosan por WhatsApp / redes','Alguien me controla demasiado','Hoy estoy bien, solo probando'];
+  }
+  showQuick(options, function(opt){
+    addMsg('user',opt);
+    clearQuick();
+    var caso=matchCaso(opt)||getFallback();
+    showTyping(function(){
+      addMsg('yoti', caso.l1);
+      if(opt.toLowerCase().includes('bien')||opt.toLowerCase().includes('probando')){
+        setTimeout(function(){ showTeenQuick2(); }, 400);
+      } else {
+        openQuestion=true;
+        setTimeout(function(){
+          showTyping(function(){
+            addMsg('yoti', caso.l2);
+            showQuick(['Prefiero no seguir ahora'], function(){
+              openQuestion=false;
+              addMsg('user','Prefiero no seguir ahora');
+              clearQuick();
+              showTyping(function(){
+                addMsg('yoti','Ok, sin presión. Aquí sigo cuando quieras.');
+                setTimeout(showTeenQuick2, 500);
+              });
+            });
+          });
+        }, 500);
+      }
+    });
+  });
+}
+
+function showTeenQuick2(){
+  openQuestion=false;
+  var options=['Sí, hay más que contar','¿Puedes avisar sin que se enteren?','De momento es suficiente'];
+  showQuick(options, function(opt){
+    addMsg('user',opt);
+    clearQuick();
+    showTyping(function(){
+      if(opt.includes('avisar')){
+        addMsg('yoti','Sí. El aviso llega en silencio — tu persona de confianza recibe una notificación discreta. Nadie más se entera. ¿Lo hago?');
+        setTimeout(function(){
+          showQuick(['Sí, hazlo','Espera, aún no'], function(r){
+            addMsg('user',r);
+            clearQuick();
+            showTyping(function(){
+              if(r.includes('Sí')){
+                addMsg('yoti','Hecho. Aviso enviado de forma silenciosa. No estás solo/a en esto.');
+              } else {
+                addMsg('yoti','Ok. Cuando estés listo/a, aquí sigo.');
+                setTimeout(showTeenQuick2, 400);
+              }
+            });
+          });
+        }, 400);
+      } else if(opt.includes('más')){
+        addMsg('yoti','Cuéntame lo que quieras. Aquí no te juzga nadie.');
+        openQuestion=true;
+        showQuick(['Prefiero no seguir ahora'], function(){
+          openQuestion=false;
+          addMsg('user','Prefiero no seguir ahora');
+          clearQuick();
+          showTyping(function(){
+            addMsg('yoti','Perfecto. Sin prisa. Ya sabes dónde encontrarme.');
+            setTimeout(showTeenQuick2, 400);
+          });
+        });
+      } else {
+        addMsg('yoti','Ok. Cuando lo necesites: calculadora, 1·2·3, y aquí estoy. Sin preguntas raras.');
+      }
+    });
+  });
+}
+
+// ── CHAT HELPERS ──
+function clearChat(){document.getElementById('chat-area').innerHTML='';}
+function clearQuick(){document.getElementById('quick-wrap').innerHTML='';}
+
+function addMsg(from, text){
+  var area=document.getElementById('chat-area');
+  var d=document.createElement('div');
+  var cls='msg '+(from==='yoti'?'yoti'+(isTeen?' teen':''):'user'+(isTeen?' teen':''));
+  d.className=cls;
+  d.innerHTML=text;
+  area.appendChild(d);
+  // Anchor div forces scroll to bottom
+  var anchor=document.getElementById('scroll-anchor');
+  if(!anchor){
+    anchor=document.createElement('div');
+    anchor.id='scroll-anchor';
+    anchor.style.height='1px';
+    anchor.style.flexShrink='0';
+    area.appendChild(anchor);
+  } else {
+    area.appendChild(anchor);
+  }
+  scrollBottom();
+}
+function scrollBottom(){
+  var area=document.getElementById('chat-area');
+  area.scrollTop=area.scrollHeight;
+  requestAnimationFrame(function(){
+    area.scrollTop=area.scrollHeight;
+    setTimeout(function(){
+      area.scrollTop=area.scrollHeight;
+      var anchor=document.getElementById('scroll-anchor');
+      if(anchor) anchor.scrollIntoView({behavior:'smooth',block:'end'});
+    },150);
+  });
+}
+
+function showTyping(cb){
+  var area=document.getElementById('chat-area');
+  var d=document.createElement('div');
+  d.className='typing'+(isTeen?' teen':'');
+  d.id='typing-ind';
+  d.innerHTML='<div class="dot-t'+(isTeen?' teen':'')+'"></div><div class="dot-t'+(isTeen?' teen':'')+'"></div><div class="dot-t'+(isTeen?' teen':'')+'"></div>';
+  area.appendChild(d);
+  scrollBottom();
+  setTimeout(function(){
+    var t=document.getElementById('typing-ind');
+    if(t) t.remove();
+    if(cb) cb();
+    scrollBottom();
+  },900);
+}
+
+function showTypingThen(text, cb){
+  showTyping(function(){
+    addMsg('yoti',text);
+    if(cb) cb();
+  });
+}
+
+function showQuick(options, cb, extraCls){
+  var wrap=document.getElementById('quick-wrap');
+  wrap.innerHTML='';
+  options.forEach(function(opt){
+    var btn=document.createElement('button');
+    btn.className='qbtn'+(extraCls?' '+extraCls:'');
+    btn.textContent=opt;
+    btn.onclick=function(){
+      wrap.innerHTML='';
+      cb(opt);
+    };
+    wrap.appendChild(btn);
+  });
+}
+
+function sendMsg(){
+  var input=document.getElementById('chat-input');
+  var text=input.value.trim();
+  if(!text) return;
+  input.value='';
+  addMsg('user',text);
+  clearQuick();
+  openQuestion=false;
+  showTyping(function(){
+    if(!profile){
+      var n=parseInt(text);
+      if(!isNaN(n)&&n>=8&&n<=17){
+        handleAge(text);
+      } else {
+        addMsg('yoti','Dime cuántos años tienes para poder ayudarte mejor 😊');
+        showQuick(ageQuick,function(a){handleAge(a);});
+      }
+    } else {
+      // Match against the 5 demo cases
+      var caso=matchCaso(text)||getFallback();
+      addMsg('yoti', caso.l1);
+      setTimeout(function(){
+        showTyping(function(){
+          addMsg('yoti', caso.l2);
+          setTimeout(function(){
+            if(isTeen) showTeenQuick2();
+            else showKidsQuick2();
+          },500);
+        });
+      },600);
+    }
+  });
+}
+
+function getEmpathicResponse(text){
+  var t=text.toLowerCase();
+
+  // Extract context already mentioned by the child
+  var numMatch=t.match(/(\d+)\s*(chico|chica|nio|nia|persona|compa|tio|tia|amigo|amiga)/);
+  var numPeople=numMatch?parseInt(numMatch[1]):null;
+  var mentions_group=(t.includes('varios')||t.includes('grupo')||t.includes('todos')||t.includes('banda')||numPeople>1);
+  var mentions_one=(t.includes('uno')||t.includes('una')||t.includes('siempre el mismo')||t.includes('siempre la misma')||(numPeople===1));
+  var mentions_older=(t.includes('mayor')||t.includes('curso superior')||t.includes('mas grande')||t.includes('más grande'));
+  var mentions_threat=(t.includes('van a')||t.includes('me va a')||t.includes('amenaz')||t.includes('salida')||t.includes('esperan'));
+  var mentions_money=(t.includes('dinero')||t.includes('paga')||t.includes('pasta')||t.includes('roban'));
+  var mentions_hit=(t.includes('pegar')||t.includes('golpe')||t.includes('empuj')||t.includes('patada'));
+  var mentions_cyber=(t.includes('whatsapp')||t.includes('instagram')||t.includes('foto')||t.includes('video')||t.includes('tiktok')||t.includes('red'));
+  var mentions_excl=(t.includes('ignoran')||t.includes('grupo')||t.includes('apart')||t.includes('hablan mal')||t.includes('nadie'));
+
+  // Build smart contextual response
+  var line1, line2;
+
+  if(mentions_money&&mentions_threat&&mentions_group){
+    var n=numPeople?numPeople+'':mentions_older?'chicos mayores':'un grupo';
+    // Check if threat is today/imminent
+    var urgente=(t.includes('hoy')||t.includes('salida')||t.includes('ahora')||t.includes('esta tarde'));
+    line1=isTeen
+      ? 'Que '+n+' te amenacen para quitarte dinero es extorsión. '+(urgente?'Si es hoy, avisamos ahora mismo.':'Eso es muy serio y no tienes que callarlo.')
+      : 'Que '+n+' te amenacen así está muy mal. '+(urgente?'Como es hoy, vamos a avisar ahora 💜':'Tú no has hecho nada malo 💜');
+    line2=urgente
+      ? '¿Sabes quiénes son exactamente?'
+      : isTeen?'¿Ya ha pasado antes o es la primera vez?':'¿Esto ha pasado antes o es la primera vez?';
+  } else if(mentions_money){
+    line1=isTeen
+      ? 'Quitarte dinero es intimidación. Eso tiene nombre y tiene solución.'
+      : 'Que te quiten cosas está muy mal. Eso no debe pasar 💜';
+    line2=isTeen
+      ? '¿Ya te han quitado dinero otras veces o es la primera?'
+      : '¿Ha pasado más veces o es la primera vez?';
+  } else if(mentions_hit&&mentions_group){
+    var n2=numPeople?numPeople+'':mentions_older?'chicos mayores':'varios';
+    var amenaza_grupo=(t.includes('van a')||t.includes('amenazan')||t.includes('esperan'));
+    line1=isTeen
+      ? (amenaza_grupo?'Que '+n2+' te amenacen es acoso en grupo. Eso hay que pararlo ya.':'Que '+n2+' te agredan es violencia. No tienes que aguantarlo.')
+      : (amenaza_grupo?'Que '+n2+' te amenacen así está muy mal. Vamos a avisar 💜':'Que '+n2+' te peguen juntos está muy mal. No es tu culpa 💜');
+    line2=amenaza_grupo
+      ? '¿Es hoy cuando dicen que va a pasar?'
+      : (isTeen?'¿Cuántas veces ha pasado ya?':'¿Dónde pasa esto? ¿En el cole o también fuera?');
+  } else if(mentions_hit){
+    var amenaza_uno=(t.includes('van a')||t.includes('amenazan')||t.includes('esperan'));
+    line1=isTeen
+      ? (amenaza_uno?'Amenazarte con pegarte es acoso. Eso no puede quedarse así.':'Que te hagan daño es muy serio. No tienes que aguantarlo.')
+      : (amenaza_uno?'Que te amenacen con pegarte está muy mal. Eso no debe pasar 💜':'Que te peguen está muy mal. No es tu culpa 💜');
+    line2=amenaza_uno
+      ? '¿Es hoy cuando dicen que va a pasar?'
+      : (isTeen?'¿Cuántas veces ha ocurrido ya?':'¿Cuándo pasó la última vez?');
+  } else if(mentions_cyber){
+    line1=isTeen
+      ? 'El acoso por redes es igual de real que el físico. Lo que sientes es completamente válido.'
+      : 'Lo que pasa en el móvil también duele. Estoy aquí contigo 💜';
+    line2=isTeen
+      ? '¿Sabes quién o quiénes están detrás de los mensajes?'
+      : '¿Cuándo empezó esto?';
+  } else if(mentions_excl){
+    line1=isTeen
+      ? 'La exclusión duele igual que los golpes. Lo que sientes es real y tiene solución.'
+      : 'Que te ignoren o hablen mal de ti duele muchísimo. Pero no estás solo/a 💜';
+    line2=isTeen
+      ? '¿Son personas de tu clase o de fuera?'
+      : '¿Son tus amigos de siempre o gente nueva?';
+  } else if(t.includes('miedo')||t.includes('asust')){
+    line1=isTeen
+      ? 'Entiendo que tengas miedo. No tienes que enfrentarlo solo/a.'
+      : 'Que tengas miedo tiene sentido. Por eso estoy aquí 💜';
+    line2=isTeen
+      ? '¿Qué es lo que más te preocupa ahora mismo?'
+      : '¿Qué es lo que más te da miedo?';
+  } else if(t.includes('hoy')||t.includes('salida')||t.includes('ahora')||t.includes('esta tarde')){
+    line1=isTeen
+      ? 'Eso es urgente. Si es hoy, hay que avisar ahora mismo.'
+      : 'Eso es muy serio y es hoy. Vamos a avisar a alguien enseguida 💜';
+    line2='¿Sabes exactamente quiénes son?';
+  } else {
+    line1=isTeen
+      ? 'Eso que me cuentas es muy serio. Gracias por contármelo.'
+      : 'Eso que me cuentas es muy serio. Aquí estoy contigo 💜';
+    line2=isTeen
+      ? '¿Cuándo pasó esto? ¿Ha pasado más veces?'
+      : '¿Ha pasado más veces o es la primera?';
+  }
+  return [line1, line2];
+}
+
+function goBack(){
+  document.getElementById('app-screen').classList.remove('visible');
+  document.getElementById('calc-screen').style.display='flex';
+  document.body.classList.remove('teen');
+  profile=null;gender=null;step='age';isTeen=false;
+  calcVal='';updateDisp();
+  document.getElementById('tb-profile').style.display='none';
+}
+
+function goHome(){
+  // Reset everything and go back to splash
+  document.getElementById('app-screen').classList.remove('visible');
+  document.getElementById('calc-screen').style.display='none';
+  document.getElementById('explainer-screen').style.display='none';
+  document.getElementById('explainer-screen').style.opacity='1';
+  document.body.classList.remove('teen');
+  profile=null;gender=null;step='age';isTeen=false;
+  calcVal='';updateDisp();
+  document.getElementById('tb-profile').style.display='none';
+  // Show splash with fade in
+  var splash=document.getElementById('splash-screen');
+  splash.style.opacity='0';
+  splash.style.display='flex';
+  setTimeout(function(){ splash.style.transition='opacity .4s ease'; splash.style.opacity='1'; },10);
+}
+
+function enterDemo(){
+  var splash=document.getElementById('splash-screen');
+  splash.style.opacity='0';
+  splash.style.transition='opacity .4s ease';
+  setTimeout(function(){
+    splash.style.display='none';
+    showExplainer();
+  },400);
+}
+
+function showExplainer(){
+  var ex=document.getElementById('explainer-screen');
+  ex.style.display='flex';
+  // Auto-hide after 5 seconds, or user can skip
+}
+
+function skipExplainer(){
+  var ex=document.getElementById('explainer-screen');
+  ex.style.opacity='0';
+  ex.style.transition='opacity .3s ease';
+  setTimeout(function(){
+    ex.style.display='none';
+    document.getElementById('calc-screen').style.display='flex';
+  },300);
+}
+
+function enterDashboard(){
+  window.location.href='https://luzcwong.github.io/YoTeCreo/yotecreo_dashboard.html';
+}
+
+// Splash stars
+var sp=document.getElementById('splash-stars');
+if(sp){
+  for(var i=0;i<20;i++){
+    var st=document.createElement('div');
+    var sz=Math.random()*3+1.5;
+    st.style.cssText='position:absolute;border-radius:50%;background:#fff;width:'+sz+'px;height:'+sz+'px;top:'+Math.random()*100+'%;left:'+Math.random()*100+'%;opacity:'+(Math.random()*.4+.05)+';animation:twinkle '+(2+Math.random()*3)+'s ease-in-out infinite;animation-delay:'+Math.random()*5+'s;';
+    sp.appendChild(st);
+  }
+}
+</script>
+</body>
+</html>
